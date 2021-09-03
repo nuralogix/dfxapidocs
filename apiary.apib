@@ -1,0 +1,3341 @@
+FORMAT: 1A
+HOST: https://api.deepaffex.ai/
+
+# DFX API Version 2.0
+
+The DFX API facilitates data communication for both internal app
+and organization integration usage. Endpoints are transacted using RESTful
+patterns in JSON.
+You may use the following documentation as a reference for interfacing with all 
+transport types, although REST is assumed as the primary.
+
+The following sections outline request patterns for each transport type. Note
+that each service may have extra feature facilities available. The current
+DFX API does not limit access across different transports, so feel free to
+use the transports interchangeably.
+
+<!--Note that for consumers using JavaScript/Node.js the DFX API Client is available-->
+<!--and works against all API transport types.-->
+
+The API is organized into endpoint Groups and individual endpoints. For example:
+`General`, `Users`, `Profiles`, `Measurements` etc. are high-level groups
+of calls. This documentation references endpoints based on [Library].[endpoint] for
+simplicity.
+
+<!--# 1. gRPC Transport-->
+
+<!--The API supports access via Google Remote Procedure Calls. gRPC services are-->
+<!--accessible in a backwards compatible manner to the REST endpoints. All calls-->
+<!--are similar in request and response including authentication mechanisms managed-->
+<!--via the `Authenticate` header value. The gRPC interface and services outline can be-->
+<!--found in the Protocol Definitions which are centrally stored in `dfx-deps`. In-->
+<!--this package, the .proto definitions outline mapped services and request.response-->
+<!--mechanisms. Compiled versions for C++, Python and JS may also be found in this-->
+<!--package. Note that the gRPC service does not support streaming of responses yet-->
+<!--and only facilitates request/response mechanisms.-->
+
+<!--DFX gRPC services are available by connecting to: `https://api.deepaffex.ai:50051`.-->
+
+# 1. Getting Started
+
+The following instructions will provide an overview of how to get started with DFX API and 
+show how take a Measurement and obtain its results.
+
+Assuming the following prerequisites are met:
+* You have a DeepAffex user account and a valid License Key
+* <a href='https://www.deepaffex.ai/en/developers-sdk.html'>Using one of the DeepAffex SDKs</a> you are able to obtain an encoded payload to send as Measurement data
+
+Follow these steps to take a test Measurement:
+
+1. Make a request to <a href='/#reference/0/organizations/register-license'>Register License endpoint.</a> 
+You only need to do this once per active Device. The response will contain a 
+Device Token - save it locally. Check the returned `RoleID` of your License, if it's 
+`SDK_DEVICE`, then Step 3 is mandatory.
+2. For all consecutive API requests send the obtained Token with request headers 
+<a href='/#introduction/3.5.-authentication-headers'>for authentication.</a>
+3. (Optional) <a href='/#reference/0/users/login'>Authenticate as a User.</a> You will 
+receive a User Token back, which will upgrade the Device Token with your account information. 
+This will improve measurement traceability down the road. Replace the Device Token in 
+Step 2 with the newly obtained User Token.
+4. <a href='/#reference/0/measurements/create'>Create new Measurement,</a> save the returned Measurement `ID` locally.
+5. If you would like to receive results for each sent chunk in real time, 
+<a href='/#reference/0/measurements/subscribe-to-results'>subscribe to results</a> 
+using a WebSocket connection.
+6. Start TOI data extraction using the DeepAffex SDK and obtain a Payload.
+7. Once you have collected enough data, <a href='/#reference/0/measurements/add-data'>send a 
+data chunk in.</a>
+8. Continue sending chunks until your measurement is complete. Make sure to mark the last 
+chunk with `LAST::PROCESS` action.
+9. <a href='/#reference/0/measurements/retrieve'>Retrieve measurement results</a> using the 
+saved Measurement `ID`.
+
+# 2. WebSocket Transport
+
+The API supports access via WebSockets. This transport method is highly
+optimized and provides a fast and efficient method of communicating with DFX API.
+We recommend leveraging this transport for platforms that need performance and
+real-time response.
+
+In order to open a connection to the WebSocket
+service an `Authorization` header must be supplied. Upon connecting all exchanges
+with the server must follow a consistent request pattern described below.
+
+Service calls to the WS service use action identifiers and request IDs. The body
+of the request has to be a serialized protocol buffer. Protobuf
+data over WebSockets requires consuming the `dfx.proto` definition file
+that comes with SDK distribution.
+
+In order to maintain the connection with the server, you must implement proper
+ping/pong heartbeats as required by the WebSocket standard specification. Aside
+from the standard use of WebSocket connectivity mechanics, the API uses a custom
+request/response exchange pattern outlined below.
+
+## 2.1 Authenticating
+
+In order to leverage the socket API, you must establish a connection with the
+server, e.g. `wss://api.deepaffex.ai` (please check with Nuralogix for the correct URL for your geography). 
+When making the connection a header should be passed that includes:
+
+```
+Authorization: Bearer [token]
+User-Agent: [name of the device/agent]
+```
+
+If the supplied authorization details are incorrect, the connection will be refused
+and the socket is dropped by the server. Upon a successful connection the socket
+will open and handshakes should be complete, signalling availability of the service.
+
+Upon connecting to the API we recommend checking the current API version and general
+status. This is done by calling the General.Status endpoint which will respond with
+the appropriate status details.
+
+## 2.2 Requesting Data
+
+The socket API receives requests and sends them with a structured buffer. Requests
+that do not abide by the proper structure are not processed and a response body with
+the following structure is returned:
+
+```
+{
+  Code: "INCORRECT_REQUEST"
+}
+```
+
+The following identifies the structure of a socket request:
+
+```
+Buffer( [ string:4 ][ string:10 ][ string/buffer ] )
+```
+
+The first 4 bytes are an Action ID for the request, which maps to the routes table listed below.
+The second 10 bytes are a unique string identifier for the request. The client is
+responsible for creating it's own request patterns. This could be a counter or
+a randomly generated alphanumeric string ie. `JDUEHDJEKO` or `000000001`. We encourage
+using a counted request key to encourage uniqueness of the request. This request ID is
+only used within the current connection and does not interfere with other concurrent
+connections using the same token. Request tokens are not stored, so reusing them is possible
+however not recommended.
+
+The remaining bytes of the payload represents the full body of your request. For protocol buffers, send the buffer representing
+the payload.
+
+## 2.3 Receiving Data
+
+The socket API responds to requests with the provided request identifier. The structure of
+the response is as follows:
+
+```
+Buffer( [ string:10 ][ string:3 ][ string/buffer ] )
+```
+
+The first 10 bytes are the request identifier, the second 3 bytes are an HTTP status identifier and
+the remaining bytes are the response body as a string or protobuf.
+
+When implementing a request/response structure, the client needs to manage requests in memory
+and await the servers response. The server will always respond to a request
+to close it out, regardless of if there's an error or not. See the status code table list
+to identify general errors. The body will also contain relevant error information.
+
+Note: For some streaming/results services, the API might operate slightly differently, requiring
+you to subscribe to a channel/feed by touching an endpoint/request and receiving data on the
+same identifier. More details are provided in the endpoint outline. The WebSocket transport
+is the only method of receiving real-time results data for measurements and other feature
+facilities while REST support static calls suitable for polling processes.
+
+# 3. Using API Transports
+
+In order to use WebSockets in a similar manner to REST, all method
+calls are prefixed by the Library (endpoint groups) followed by a 
+period and the method in the library. For example `PUT /users` is accessible via
+`Users.create`.
+
+An important difference in the call methods is translating query string and parameters that
+would typically be sent via the REST service to the WebSocket payloads. Outlined below
+are added as properties when making a request payload to `Meta.retrieveByType`:
+
+```
+  {
+    "Foo": "bar",
+    "Query": {
+      "Namespace": "all",
+      "Fields": "Foo,Bar"
+    },
+    "Params": {
+      "Type": "Group",
+      "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+    }
+  }
+```
+
+In essence `Query` and `Params` are values that are extracted from the payload body
+and interpreted as values that would typically be expected by a REST request.
+
+Error messages are transported in turn in similar object formats as listed below.
+The WebSocket interface also follow this pattern.
+
+Note: Many endpoints within DFX use arrays in the root of the payload. Unfortunately
+Protobufs do not support rooted arrays, hence the value needs to be wrapped in an object.
+The DFX API looks for the `Values` property in a payload and handles the containing array
+as a root array. The following is an example of a request to `Groups.addUsers`:
+
+REST request example:
+```
+    [
+        "7ab8bee7-808c-4123-9811-ef85adb8c77f",
+        "7ab8bee7-808c-4123-9811-ef85adb8c75f",
+        "7ab8bee7-808c-4123-9811-ef85adb8c71f",
+        "7ab8bee7-808c-4123-9811-ef85adb8c72f",
+        "7ab8bee7-808c-4123-9811-ef85adb8c77f"
+    ]
+```
+Protobuf wrapped example of the same payload:
+```
+  {
+    "Values": [
+        "7ab8bee7-808c-4123-9811-ef85adb8c77f",
+        "7ab8bee7-808c-4123-9811-ef85adb8c75f",
+        "7ab8bee7-808c-4123-9811-ef85adb8c71f",
+        "7ab8bee7-808c-4123-9811-ef85adb8c72f",
+        "7ab8bee7-808c-4123-9811-ef85adb8c77f"
+    ]
+  }
+```
+
+# 3.1. REST Header Response Codes
+
+|Code|Title|Description|
+|--------|------------------------------------- |-----|
+|200|OK|The request was successful (some API calls may return 201 instead).|
+|201|Created|The request was successful and a resource was created.|
+|204|No Content|The request was successful but there is no representation to return (i.e. the response is empty).|
+|400|Bad Request|The request could not be understood or was missing required parameters.|
+|401|Unauthorized|Authentication failed or user doesn't have permissions for requested operation.|
+|403|Forbidden|Access denied.|
+|404|Not Found|Resource was not found.|
+|405|Method Not Allowed|Requested method is not supported for resource.|
+|409|Conflict| Errors due to some sort of conflict, e.g. Creating an user that already exists.|
+|429|Too many requests|The client has submitted more requests than allowed and was subject to rate limiting.|
+
+# 3.2. Allowed REST HTTP request methods
+
+|Verb|Description|
+|--------|------------------------------------- |
+| POST | To create a resource |
+| PUT | Update the whole body of a resource |
+| PATCH  | Update parts of a resource  |
+| GET   | Get a resource or list of resources |
+| DELETE | Delete a resource |
+| CONNECT | For subscribing a socket process |
+
+# 3.3. Port Addresses
+
+|Transport Type|Port|
+|--------|------------------------------------- |
+| REST | 443 |
+| WebSocket + ProtoBuffs   | 443 |
+<!--| WebSocket JSON | 443 |-->
+
+<!--The connection port for WebSockets is mapped to port 80 however still uses SSL.-->
+
+# 3.4. Endpoint Error Codes
+
+All error messages sent down the wire are simple objects with one "error"
+property. The value of this property could be the following:
+
+Errors will come back with the following JSON structure. A `code` property will
+always be present identifying the generalized error. The `errors` property will
+return as an array of object of errors associated and mapped to the type of error
+code being sent. In the validation example a breakdown of the fields and their
+expected results will be returned.
+
+```
+
+    {
+      "Code": "VALIDATION",
+      "Errors": {
+        "FirstName": [
+          [
+            "STRING_GREATER_THAN",
+            5
+          ]
+        ],
+        "DateOfBirth": [
+          "INVALID_RANGE"
+        ]
+      }
+    }
+    
+```
+
+# 3.5. Authentication Headers
+
+DFX tokens are serialized JWT tokens and are passed to the API server via the
+"Authorization" header value. A basic structured request would look like
+this:
+
+```Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...```
+
+Organizations are provided with License Keys that can be exchanged for API tokens by calling <a href='/#reference/0/organizations/register-license'>Register License</a> endpoint.
+
+## 3.5.1 More details and best practices
+
+* Since tokens represent authentication information, please make sure to **store them 
+securely** - typically in some form of secure storage.
+* Some License Keys have a limited number of allowed active Devices. If you need to 
+use your License on a different device, make sure to unregister your current device 
+first by calling the <a href='/#reference/0/organizations/unregister-license'>Organizations UnregisterLicense</a> endpoint.
+* The response to Organizations RegisterLicense contains a RoleID for the license - 
+if it is SDK_DEVICE, then obtaining a user token is mandatory.
+* Device tokens may expire. To ensure that a token is valid, you can call the 
+<a href='/#reference/0/general/verify-token'>General VerifyToken</a> endpoint. 
+If the ActiveLicense field in the response is false or if the API returns one of the 
+following errors: `INVALID_TOKEN`, `LICENSE_EXPIRED`, `INACTIVE_LICENSE` or `INACTIVE_DEVICE`, 
+then the client must re-register the license.
+
+<!--**Note:** all endpoints, except for <a href='/#reference/0/organizations/register-license'>Register License</a>, <a href='/#reference/0/organizations/login'>User Login</a>, <a href='/#reference/0/general/mime-types'>Mime Types</a>, <a href='/#reference/0/general/status'>Status</a>, and <a href='/#reference/0/general/status'>Status</a> require authentication.-->
+
+# 3.6. Endpoint Summary
+
+Note that some endpoints listed in this documentation are not
+available in the mapping as they may be outlined only for internal use.
+
+|Group|ActionID|Method|Endpoint|REST Path|
+|--------|--------|--------|--------|--------|
+|General|100|GET|<a href='/#reference/0/general/status'>`status`</a>|/status|
+|General|101|GET|<a href='/#reference/0/general/mime-types'>`mimeTypes`</a>|/mimes|
+|General|102|GET|<a href='/#reference/0/general/list-available-user-roles'>`listRoles`</a>|/roles|
+|General|104|GET|<a href='/#reference/0/general/list-available-statuses'>`statuses`</a>|/statuses|
+|General|107|GET|<a href='/#reference/0/general/verify-token'>`verifyToken`</a>|/auth|
+|General|108|GET|<a href='/#reference/0/general/regions'>`regions`</a>|/regions|
+|Users|200|POST|<a href='/#reference/0/users/create'>`create`</a>|/users|
+|Users|201|POST|<a href='/#reference/0/users/login'>`login`</a>|/users/auth|
+|Users|202|GET|<a href='/#reference/0/users/retrieve'>`retrieve`</a>|/users|
+|Users|206|DELETE|<a href='/#reference/0/users/remove'>`remove`</a>|/users|
+|Users|208|PATCH|<a href='/#reference/0/users/update'>`update`</a>|/users|
+|Users|209|PATCH|<a href='/#reference/0/users/send-reset-request'>`sendReset`</a>|/users/sendreset|
+|Users|210|PATCH|<a href='/#reference/0/users/reset-password'>`resetPassword`</a>|/users/reset|
+|Users|211|PATCH|<a href='/#reference/0/users/retrieve-user-role'>`getRole`</a>|/users/role|
+|Users|212|PATCH|<a href='/#reference/0/users/verify-user-account'>`verify`</a>|/users/verify|
+|Users|213|PATCH|<a href='/#reference/0/users/send-account-verification-code'>`verificationCode`</a>|/users/verificationCode/:ID/:OrgKey|
+|Users|216|GET|<a href='/#reference/0/users/request-phone-login-code'>`requestLoginCode`|/users/auth/code/:OrgKey/:PhoneNumber|
+|Users|217|POST|<a href='/#reference/0/users/login-with-phone-code'>`loginWithCode`</a>|/users/auth/code|
+|Users|219|DELETE|<a href='/#reference/0/users/delete'>`delete measurement`</a>|/users/:ID/measurements|
+|Users|220|POST|<a href='/#reference/0/users/change-password'>`Change Password`</a>|/users/changepassword|
+|Users|221|POST|<a href='/#reference/0/users/create-two-factor-authentication-secret'>`Create 2FA secret logged in user`</a>|/users/mfa/secret|
+|Users|222|POST|<a href='/#reference/0/users/enable-two-factor-authentication-for-logged-in-user'>`Enable 2FA for logged in user`</a>|/users/mfa|
+|Users|223|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-logged-in-user'>`Disable 2FA for logged in user`</a>|/users/mfa|
+|Users|224|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-specified-user'>`Disable 2FA for specified user`</a>|/users/:ID/mfa|
+|Profiles|400|POST|<a href='/#reference/0/profiles/create-profile'>`create`</a>|/users/profiles|
+|Profiles|401|GET|<a href='/#reference/0/profiles/retrieve-profile'>`retrieve`</a>|/users/profiles/:ID|
+|Profiles|402|GET|<a href='/#reference/0/profiles/list-profiles'>`list`</a>|/users/profiles|
+|Profiles|403|GET|<a href='/#reference/0/profiles/list-profiles-by-user'>`listByUser`</a>|/users/:ID/profiles|
+|Profiles|404|DELETE|<a href='/#reference/0/profiles/remove-profile'>`remove`</a>|/users/profiles/:ID|
+|Profiles|405|PATCH|<a href='/#reference/0/profiles/update-profile'>`update`</a>|/users/profiles/:ID|
+|Measurements|504|POST|<a href='/#reference/0/measurements/create'>`create`</a>|/measurements|
+|Measurements|506|POST|<a href='/#reference/0/measurements/add-data'>`data`</a>|/measurements/:ID/data|
+|Measurements|510|CONNECT|<a href='/#reference/0/measurements/subscribe-to-results'>`subscribeResults`</a>|/measurements/:ID/results/|
+|Measurements|500|GET|<a href='/#reference/0/measurements/retrieve'>`retrieve`</a>|/measurements/:ID|
+|Measurements|501|GET|<a href='/#reference/0/measurements/list'>`list`</a>|/measurements|
+|Measurements|507|DELETE|<a href='/#reference/0/measurements/delete'>`delete`</a>|/measurements/:ID|
+|Groups|600|GET|<a href='/#reference/0/groups/list'>`list`</a>|/groups|
+|Groups|601|GET|<a href='/#reference/0/groups/list'>`types`</a>|/groups/types|
+|Groups|602|GET|<a href='/#reference/0/groups/retrieve'>`retrieve`</a>|/groups/:ID|
+|Groups|603|GET|<a href='/#reference/0/groups/list-users'>`getUsers`</a>|/groups/:ID/users|
+|Groups|604|POST|<a href='/#reference/0/groups/create'>`create`</a>|/groups|
+|Groups|605|POST|<a href='/#reference/0/groups/add-users'>`addUsers`</a>|/groups/:ID/users|
+|Groups|606|PATCH|<a href='/#reference/0/groups/update'>`update`</a>|/groups/:ID|
+|Groups|607|DELETE|<a href='/#reference/0/groups/remove'>`remove`</a>|/groups/:ID|
+|Groups|608|DELETE|<a href='/#reference/0/groups/remove-users'>`removeUsers`<a>|/groups/:ID/users|
+|Organizations|700|GET|<a href='/#reference/0/organizations/retrieve'>`retrieve`</a>|/organizations|
+|Organizations|702|GET|<a href='/#reference/0/organizations/users'>`users`</a>|/organizations/users|
+|Organizations|703|GET|<a href='/#reference/0/organizations/list-measurements'>`listMeasurements`</a>|/organizations/measurements|
+|Organizations|704|GET|<a href='/#reference/0/organizations/retrieve-measurement'>`retrieveMeasurement`</a>|/organizations/measurements/:ID|
+|Organizations|705|POST|<a href='/#reference/0/organizations/register-license'>`registerLicense`</a>|/organizations/licenses|
+|Organizations|706|DELETE|<a href='/#reference/0/organizations/unregister-license'>`unregisterLicense`</a>|/organizations/licenses|
+|Organizations|708|GET|<a href='/#reference/0/organizations/logo'>`retrieveLogo`|/organizations/:ID/logo|
+|Organizations|710|GET|<a href='/#reference/0/organizations/list-profiles'>`listProfiles`</a>|/organizations/profiles|
+|Organizations|711|GET|<a href='/#reference/0/organizations/retrieve-profile'>`retrieveProfile`</a>|/organizations/profiles/:ID|
+|Organizations|712|GET|<a href='/#reference/0/organizations/retrieve-user'>`retrieveUser`</a>|/organizations/users/:ID|
+|Organizations|713|POST|<a href='/#reference/0/organizations/create-user'>`createUser`</a>|/organizations/users|
+|Organizations|714|PATCH|<a href='/#reference/0/organizations/update-user'>`updateUser`</a>|/organizations/users/:ID|
+|Organizations|715|DELETE|<a href='/#reference/0/organizations/delete-user'>`removeUser`</a>|/organizations/users/:ID|
+|Organizations|716|PATCH|<a href='/#reference/0/organizations/update-profile'>`updateProfile`</a>|/organizations/profiles/:ID|
+|Organizations|717|POST|<a href='/#reference/0/organizations/login'>`login`</a>|/organizations/auth|
+|Organizations|721|DELETE|<a href='/#reference/0/organizations/delete'>`Delete Org Measurement`</a>|/organizations/:ID/measurements|
+|Organizations|722|DELETE|<a href='/#reference/0/organizations/delete-partner-measurement'>`Delete Partner Measurement`</a>|/organizations/:ID/partners/:PartnerID/measurements|
+|Studies|800|GET|<a href='/#reference/0/studies/types'>`types`</a>|/studies/types|
+|Studies|801|GET|<a href='/#reference/0/studies/list-templates'>`templates`</a>|/studies/templates|
+|Studies|804|GET|<a href='/#reference/0/studies/retrieve'>`retrieve`</a>|/studies/:ID|
+|Studies|806|POST|<a href='/#reference/0/studies/retrieve-sdk-study-config-data'>`retrieveSdkStudyConfigData`</a>|/studies/sdkconfig|
+|Studies|805|GET|<a href='/#reference/0/studies/list'>`list`</a>|/studies|
+|Studies|806|POST|<a href='/#reference/0/studies/create'>`create`</a>|/studies|
+|Studies|807|PATCH|<a href='/#reference/0/studies/update'>`update`</a>|/studies/:ID|
+|Studies|808|DELETE|<a href='/#reference/0/studies/delete'>`remove`</a>|/studies/:ID|
+|Studies|811|DELETE|<a href='/#reference/0/studies/delete-study-measurement'>`Delete Study Measurement`</a>|/studies/:ID/measurements|
+|Devices|900|GET|<a href='/#reference/0/devices/types'>`types`</a>|/devices/types|
+|Devices|902|GET|<a href='/#reference/0/devices/retrieve'>`retrieve`</a>|/devices/:ID|
+|Devices|903|POST|<a href='/#reference/0/devices/create'>`create`</a>|/devices|
+|Devices|904|PATCH|<a href='/#reference/0/devices/update'>`update`</a>|/devices/:ID|
+|Devices|905|DELETE|<a href='/#reference/0/devices/delete'>`remove`</a>|/devices/:ID|
+|Devices|906|GET|<a href='/#reference/0/devices/list'>`list`</a>|/devices|
+|Devices|907|DELETE|<a href='/#reference/0/devices/delete-device-measurement'>`Delete device Measurement`</a>|/devices/:ID/measurements|
+|Devices|908|GET|<a href='/#reference/0/devices/retrieve-license-id'>`Retrieve license ID`</a>|/devices/license|
+|Licenses|1406|GET|<a href='/#reference/0/licenses/retrieve-anura-license'>`listOrgLicenses`|/licenses/organization|
+<!--|Licenses|1400|POST|<a href='/#reference/0/licenses/create-anura-license'>`createLicenseAllowedStudy`|/licenses/studies|-->
+<!--|Licenses|1401|PATCH|<a href='/#reference/0/licenses/update-anura-license'>`updateLicenseAllowedStudy`|/licenses/studies/:ID|-->
+<!--|Licenses|1402|DELETE|<a href='/#reference/0/licenses/create-anura-license'>`removeLicenseAllowedStudy`|/licenses/studies/:ID|-->
+<!--|Licenses|1403|GET|<a href='/#reference/0/licenses/list-anura-license'>`listLicenseAllowedStudies`|/licenses/studies|-->
+<!--|Licenses|1404|GET|<a href='/#reference/0/licenses/retrieve-anura-license'>`retrieveLicenseAllowedStudy`|/licenses/studies/:ID|-->
+
+# 4. Tokens
+
+The DFX API is built around token authentication using JSON Web Tokens. Each token
+is of variable size and comes serialized with key information pertaining to the
+current access request.
+
+All tokens are mapped against an internal policy manager that specifies what access
+levels it has. The token policies control every access to the API.
+
+<!--## 4.1. Organization Tokens-->
+
+<!--An organization token is keyed specifically for use by an organization to request-->
+<!--more sensitive aspects of the API. For most consumers, the organization token will-->
+<!--be the primary method for accessing the API. Organization tokens are considered-->
+<!--permanent and never expire. The basic role for an organization grants access to all-->
+<!--endpoints that are not user specific.-->
+
+## 4.1. Device Tokens
+
+A device token usually represents a single device, such as the DFX Desktop application. A device token is permanent and
+provides access to endpoints that allow for device-specific feature facilities ie.
+device check-in. Obtaining a Device token is mandatory for any Measurement related activities.<br><br>
+Device Token is obtained by <a href='/#reference/0/organizations/register-license'>registering license.</a>
+
+## 4.2. User Tokens
+
+User tokens provide access to all libraries that are not `Measurements`.<br><br>
+User Token is obtained by logging in: <a href='/#reference/0/users/login'>Method 1</a>, <a href='/#reference/0/organizations/login'>Method 2</a>.<br><br>
+To take Measurements associated with your User account - login using <b>Method 1</b> and submit the obtained `Token` for authentication.
+
+
+## General [/]
+
+### Status [GET /status]
+
+An endpoint that propagates the current API health status and other information. This can be
+used during an apps initial boot process to determine the accessibility
+of the API and propagate a general status message to users. Possible `Status`
+codes include:
+
+|Status Message|Description|
+|--------|------------------------------------- |
+| ACTIVE | Online and fully operational |
+| MAINTENANCE  | Offline for maintenance  |
+| ERROR   | Offline due to an error |
+| LATENCY   | API is experience latency or a general slowdown |
+
+Also present in the response are `Region` - the location of the API by cluster and 
+`AllowAnonymous` - a boolean, which when `false` means that user login (and thus a user token) 
+is *required* for making measurements.
+
++ Response 200 (application/json)
+
+        {
+            "StatusID": "ACTIVE",
+            "Version": "1.0",
+            "Region": "na-east",
+            "AllowAnonymous": false,
+        }
+        
+### List Available Statuses [GET /statuses]
+
+Retrieves a list of available status codes that can be used throughout the application to update the StatusID field of various resources.
+
++ Request (application/json)
+
+    + Headers
+        Authorization: "Bearer <api token>"
+        
++ Response 200 (application/json)
+
+[
+    {
+        "ID": "ACTIVE",
+        "Name": "Active",
+        "Description": "Active and fully operational."
+    },
+    {
+        "ID": "INACTIVE",
+        "Name": "Inactive",
+        "Description": "Inactive and not available."
+    },
+    {
+        "ID": "DELETED",
+        "Name": "Deleted",
+        "Description": "Deleted Removed and no longer available."
+    },
+    {
+        "ID": "ARCHIVED",
+        "Name": "Archived",
+        "Description": "Archived  Archived for future use."
+    },
+    {
+        "ID": "IN_PROGRESS",
+        "Name": "In Progress",
+        "Description": "In Progress or currently being process."
+    },
+    {
+        "ID": "COMPLETE",
+        "Name": "Complete",
+        "Description": "Process has finished or completed."
+    },
+    {
+        "ID": "PROCESSED",
+        "Name": "Processed",
+        "Description": "Record has been processed and is complete."
+    },
+    {
+        "ID": "INVALID",
+        "Name": "Invalid",
+        "Description": "Record is invalid and no longer relevant."
+    },
+    {
+        "ID": "PENDING",
+        "Name": "Pending",
+        "Description": "Record is in pending status."
+    },
+    {
+        "ID": "CREATED",
+        "Name": "Created",
+        "Description": "Record has been created."
+    },
+    {
+        "ID": "ERROR",
+        "Name": "Error",
+        "Description": "An error occurred for the record."
+    },
+    {
+        "ID": "DECOMMISSIONED",
+        "Name": "Decommissioned",
+        "Description": "Resource is no longer in use."
+    },
+    {
+        "ID": "WARNING",
+        "Name": "Warning",
+        "Description": "A warning happened in the server"
+    },
+    {
+        "ID": "EXPIRED",
+        "Name": "Expired",
+        "Description": "Resource has passed its expiration date"
+    }
+]
+
+### List Available User Roles [GET /roles]
+
+Retrieves a list of available User Roles.
+
+ + Request (application/json)
+
+    + Headers
+        Authorization: "Bearer <api token>"
+        
++ Response 200 (application/json)
+
+[
+    {
+        "ID": "DFX_RESEARCHER",
+        "Name": "DFX Researcher",
+        "Description": "DFX Researcher"
+    },
+    {
+        "ID": "NURA_APP_USER",
+        "Name": "Anura Application User",
+        "Description": "Users registered through Anura mobile app."
+    },
+    {
+        "ID": "DFX_LEAD",
+        "Name": "DFX Lead",
+        "Description": "DeepAffex Lead Researcher"
+    },
+    {
+        "ID": "DFX_INTERNAL_RESEARCHER",
+        "Name": "DFX Internal Researcher",
+        "Description": "DFX Internal Researcher"
+    },
+    {
+        "ID": "DFX_ANALYST",
+        "Name": "DFX Analyst",
+        "Description": "DFX Analyst"
+    },
+    {
+        "ID": "DFX_OPERATOR",
+        "Name": "DFX Operator",
+        "Description": "DFX Operator"
+    }
+]
+
+
+### Mime Types [GET /mimes]
+
+Returns a list of system-wide accepted Mime types and their IDs.
+
++ Response 200 (application/json)
+
+        [
+            {
+                "ID": "uuid",
+                "Name": "JPEG Image",
+                "Mime": "image/jpeg"
+            },
+            {
+                "ID": "uuid",
+                "Name": "GIF Image",
+                "Mime": "image/gif"
+            },
+            {
+                "ID": "uuid",
+                "Name": "MPEG Video",
+                "Mime": "video/mpeg"
+            },
+            {
+                "ID": "uuid",
+                "Name": "QuickTime Video",
+                "Mime": "video/quicktime"
+            },
+            {
+                "ID": "uuid",
+                "Name": "MatLab File",
+                "Mime": "application/matlab"
+            },
+            {
+                "ID": "uuid",
+                "Name": "ExtractorCSV4 File",
+                "Mime": "text/plain"
+            },
+            {
+                "ID": "uuid",
+                "Name": "PDF",
+                "Mime": "application/pdf"
+            }
+        ]
+        
+### Verify Token [GET /auth]
+
+An endpoint that checks validity of your Token and returns its encoded info.
+
++ Request (application/json)
+
+    + Headers
+        Authorization: "Bearer <api token>"
+        
++ Response 200 (application/json)
+
+        {
+            "OrganizationID": "uuid",
+            "ID": "uuid",
+            "Type": "User",
+            "DeviceID": "uuid",
+            "Region": "na-east",
+            "iat": 1570735844,
+            "iss": "urn:deepaffex",
+            "RoleID": "BASIC_DEVICE",
+            "ActiveLicense": "boolean (indicates if token allows to create Measurements)"
+        }
+        
++ Response 401 (application/json)
+
+        {
+            "Code": "INVALID_TOKEN",
+            "Message": "Token is not recognized"
+        }
+        
+### Regions [GET /regions]
+
+An endpoint gives a list of regions available for clusters.
+
++ Request (application/json)
+        
++ Response 200 (application/json)
+
+    {
+    "na-east": "NA East",
+    "sa-east": "SA East",
+    "cn": "CN",
+    "eu-central": "EU Central"
+    }    
+
+## Users [/users]
+
+### Create [POST]
+
+Creates a new user in the organization, checking for existing
+user details against the user list. `Email + Password` *OR* `PhoneNumber` fields are required. If both are provided, `Email + Password` will be used to create
+User account. The rest of the fields are optional.
+
++ Request (application/json)
+
+    + Headers
+        Authorization: "Bearer <api token>"
+    
+    + Body
+
+        {
+            "FirstName"   : "John",
+            "LastName"    : "Appleseed",
+            "Email"       : "john@example.com",
+            "Password"    : "testpassword",
+            "PhoneNumber" : "+12345678900",
+            "Gender"      : "male",
+            "DateOfBirth" : "1986-02-10",
+            "HeightCm"    : "180",
+            "WeightKg"    : "70"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+        }
+
++ Response 401 (application/json)
+
+        {
+          "Code"    : "VALIDATION",
+          "Errors"  : { 
+            "DateOfBirth": [ "INVALID_RANGE" ] 
+          }
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
++ Response 409 (application/json)
+
+        {
+            "Code": "USER_ALREADY_EXISTS", 
+            "Message": "User john2@example.com already exists in this Organization." 
+        }        
+
+### Login [POST /users/auth]
+
+Logs a user into a new session using Email, Password and optionally an MFAToken and responds with a User Token. The Token must be passed to every subsequent
+API call to the server.
+
+**Note:** you need to obtain a Device Token first to be able to login through this endpoint.
+
+**Note:** MFAToken token is mandatory when Multi-factor authentication is enabled for this user.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+            
+    + Body
+
+            {
+                "Email": "joe@example.com",
+                "Password": "foobar",
+                "MFAToken": "123456"
+            }
+
++ Response 200 (application/json)
+
+        {
+            "Token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiIxYTY3ODI2Mi03NjgxLTQ4NTItYjkxZS00NzBiOGIzMzBlMmIiLCJPcmdhbml6YXRpb25JZCI6ImNmMTAyYzQyLWYyYmEtNGU4Ny1hOTU0LWU0NDlkZTZmMWRkMiIsIkRldmljZUlkIjpudWxsLCJpYXQiOjE0OTU3MjQ1MjEsImV4cCI6MTUzMTcyMDkyMSwiaXNzIjoidXJuOm51cmFsb2dpeCJ9.JRAhY36Eh6MwlQ2RF4w47p2pQBwG2HQaOdSsxvqqk-rZ-jKRyyWvS8gtRtJ83qwba3qwTB893LZfPio2cwEG5IUU6OV0C1VCOI4cvPw6QAHarz2yx65Y9QHnSxfyA_AFIXBEIjvUVUEyPYWp6AyzC8izwtWlP2DznTMGrFTBJfG36siAn8RlGYBXf-A4dehMsKAKcq8q_s4CeTjATjOa2MbCHLQ3H6PEmG6kks98psJ4q0Z6zhycNIDCL1D6adpR208jj-0TfxJ-7wQSY528Y7t4qs7bCFdp5yzoP7ueiYfefk03IUjYcsFxN_FmVlPWbpMWhmgI4HN-yE2GM6l0tA"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "INVALID_USER"
+            "Message": "Invalid Credentials" 
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "INVALID_PASSWORD"
+            "Message": "Invalid Credentials" 
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "MFA_TOKEN_REQUIRED"
+            "Message": "User account is configured to use multi-factor authentication." 
+        }
+
+### Request Phone Login Code [GET /users/auth/code/{OrgKey}/{PhoneNumber}]
+
+Request a 6-digit login code for a User account created with a Phone Number. Use this code in `loginWithCode` endpoint to obtain `UserToken`.
+
++ Request (application/json)
+
++ Parameters
+    + OrgKey (string) - Organization Key.
+    + PhoneNumber (string) - User's phone number.
+
++ Response 200 (application/json)
+
+        {
+            "success": true
+        }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_USER",
+            "Message": "User not found"
+        }
+
+### Login With Phone Code [POST /users/auth/code]
+
+Use previously requested 6-digit code to login into a new session and obtain `UserToken`.
+
++ Request (application/json)
+
+        {
+          "LoginCode": "123456",
+          "PhoneNumber": "+12345678900",
+          "OrgKey": "Organization-Key"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "Token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiIxYTY3ODI2Mi03NjgxLTQ4NTItYjkxZS00NzBiOGIzMzBlMmIiLCJPcmdhbml6YXRpb25JZCI6ImNmMTAyYzQyLWYyYmEtNGU4Ny1hOTU0LWU0NDlkZTZmMWRkMiIsIkRldmljZUlkIjpudWxsLCJpYXQiOjE0OTU3MjQ1MjEsImV4cCI6MTUzMTcyMDkyMSwiaXNzIjoidXJuOm51cmFsb2dpeCJ9.JRAhY36Eh6MwlQ2RF4w47p2pQBwG2HQaOdSsxvqqk-rZ-jKRyyWvS8gtRtJ83qwba3qwTB893LZfPio2cwEG5IUU6OV0C1VCOI4cvPw6QAHarz2yx65Y9QHnSxfyA_AFIXBEIjvUVUEyPYWp6AyzC8izwtWlP2DznTMGrFTBJfG36siAn8RlGYBXf-A4dehMsKAKcq8q_s4CeTjATjOa2MbCHLQ3H6PEmG6kks98psJ4q0Z6zhycNIDCL1D6adpR208jj-0TfxJ-7wQSY528Y7t4qs7bCFdp5yzoP7ueiYfefk03IUjYcsFxN_FmVlPWbpMWhmgI4HN-yE2GM6l0tA"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED", 
+            "Message": "Submitted parameters did not match our records" 
+        }
+
+### Retrieve [GET]
+
+Retrieves User account information based on the provided User Token.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+    {
+        "Gender": "male",
+        "DateOfBirth": "1986-02-10",
+        "Created": 1521491577,
+        "Updated": 1530158485,
+        "ID": "ef08-47a3-a424-6db41471",
+        "OrganizationID": "45a8-af7a-6285d503d",
+        "RoleID": "DFX_ADMIN",
+        "StatusID": "ACTIVE",
+        "Email": "test@nuralogix.ai",
+        "Password": "$/Nl2tADWf6Tyl6G",
+        "FirstName": "first",
+        "LastName": "last",
+        "ResetToken": null,
+        "ResetTokenDate": null,
+        "AvatarURI": null,
+        "IsVerified": true,
+        "VerificationCode": null,
+        "PhoneNumber": null,
+        "DeviceID": null,
+        "HeightCm": null,
+        "WeightKg": null,
+        "LoginMethod": "Email",
+        "SSOID": null,
+        "Region": "na-east",
+        "MFAEnabled": false
+}
+
++ Response 204 (application/json)
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
+### Update [PATCH /users]
+
+Updates a user's account information with new details. This endpoint
+will only update fields supplied to it, hence sending only
+First Name or Last Name will exclusively update those values.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Request (application/json)
+
+        {
+            "Email": "new-email@mail.com",
+            "FirstName": "John",
+            "LastName": "Appleseed",
+            "Gender": "male",
+            "Password": "idontlikeapples",
+            "DateOfBirth": "1986-02-10",
+            "HeightCm": "182",
+            "WeightKg": "75"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Error": "UNAUTHORIZED_ACCESS"
+        }
+        
+### Create Two-factor authentication secret [POST /users/mfa/secret]
+
+Creates a base32 secret, url and a QR code (both derived from the secret) that are compatible
+with Google Authenticator or similar two-factor token generation application. The secret can
+be used to enable 2FA for given user, and QR code can be used to configure compatible application
+to generate login tokens for it.
+
+This is the first of two API calls needed to configure 2FA for a user.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+            "secretBase32Encoded": "***************",
+            "url": "oauth://**********",
+            "qrcode": "data://*******"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
+### Enable Two-factor authentication for logged in user [POST /users/mfa]
+
+Enables 2FA for logged in user using an MFASecret (created by `/users/mfa/secret` endpoint)
+and MFAToken (derived from MFASecret by scanning a QR code by Google Authenticator or compatible app).
+
+This is the second of two API calls needed to configure 2FA for a user.
+
+The complete workflow would be
+as follows:
+
+1. Logged in user calls `/users/mfa/enable` and stores `secretBase32Encoded` and `qrcode` properties.
+2. User scans `qrcode` by 2FA token generation app.
+3. User POSTs `secretBase32Encoded` as `MFASecret` and 2FA app temporary token as `MFAToken` to `/users/mfa/enable` endpoint.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Request (application/json)
+
+        {
+            "MFASecret": "***************",
+            "MFAToken": "123456"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "success": true
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "INCORRECT_MFATOKEN"
+        }
+
+### Disable Two-factor authentication for specified user [DELETE /users/{ID}/mfa]
+
+Disables 2FA for user by its ID. This is a privileged operation that requires ORG_ADMIN permissions.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Parameters
+    + ID: User's ID
+    
++ Response 200 (application/json)
+
+        {
+            "success": true
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
+### Disable Two-factor authentication for logged in user [DELETE /users/mfa]
+
+Disables 2FA for logged in user.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+            "success": true
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
+### Retrieve User Role [GET /users/role]
+
+Retrieves User's Role.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+            "ID": "role_id",
+            "Name": "role_name",
+            "Description": "role_description",
+            "Organization": "org. name"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
+<!--### Update Avatar [POST /users/avatar]-->
+
+<!--Allows for creating a user avatar. The contents of the image-->
+<!--can be posted directly in the inbound JSON object. The `Buffer`-->
+<!--property in the payload should be a base64 encoded buffer string-->
+<!--as GIF, JPEG or PNG. Alternatively pass in the AvatarURI to-->
+<!--reference and external asset for the account.-->
+
+<!--+ Request (application/json)-->
+
+<!--        {-->
+<!--            "Buffer": "..."-->
+<!--        }-->
+
+<!--+ Response 200 (application/json)-->
+
+<!--        {-->
+<!--            "AvatartURI": "https://s3.amazonaws.com/dev-avatar-files/32b0de95-64ab-4563-b48f-976887f4ac0a",-->
+<!--        }-->
+
+<!--+ Response 401 (application/json)-->
+
+<!--        {-->
+<!--            "Error": "UNAUTHORIZED_ACCESS"-->
+<!--        }-->
+
+### Send Reset Request [PATCH /users/sendreset]
+
+Dispatches a password reset request email to the user which
+contains a reset password token. Upon retrieving this value the
+token is used against the Reset Password endpoint.
+
++ Request (application/json)
+
+        {
+            "Email": "foo@bar.com",
+            "Identifier": "Your organization identifier"
+        }
+
++ Response 200 (application/json)
+
+{
+    "ResetToken": "3aa37f61-b2b2"
+}
++ Response 401 (application/json)
+
+        {
+            "Error": "USER_NOT_FOUND"
+        }
+
+### Reset Password [PATCH /users/reset]
+
+Performs a password reset request against the user account
+if supplied with a token and new password.
+
++ Request (application/json)
+
+        {
+            "ResetToken": "USHD927wjed89",
+            "Password": "newpassword"
+        }
+
++ Response 200 (application/json)
+{
+    "success": true
+}
+
++ Response 401 (application/json)
+
+        {
+            "Error": "INVALID_RESET_TOKEN"
+        }
+        
+### Send Account Verification Code [GET /users/verificationCode/{ID}/OrgKey]
+
+Sends an account verification code to the user's email address. 
+The code is used to verify the account through the account verification endpoint.
+
++ Parameters
+    + ID: User's ID
+
++ Response 200 (application/json)
+ 
+        { 
+            "success": true, 
+            "Message": "We sent you a link to verify your account!" 
+        } 
++ Response 400 (application/json)
+ 
+        { 
+            "Code": "INVALID_USER", 
+            "Message": "User not found" 
+        } 
+
+
+### Verify User Account [POST /users/verify]
+
+Verifies User's email address.
+
++ Request (application/json)
+
+        {
+            "VerificationCode": "received verification code",
+            "ID": "User ID"
+        }
+
++ Response 200 (application/json)
+        {
+            "success": true
+        }
+        
++ Response 400 (application/json)
+
+        {
+            "Code": "INVALID_VERIFICATION_CODE", 
+            "Message": "Verification code expired or invalid"
+        }
++ Response 401 (application/json)
+
+        {
+            "Error": "INVALID_RESET_TOKEN"
+        }
+
+
+### Remove [DELETE /users]
+
+Removes the entire user account, profiles, and all measurement data associated with it.
+The account to be deleted is derived from the User Token.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
++ Response 401 (application/json)
+
+        {
+            "Error": "UNAUTHORIZED_ACCESS"
+        }
++ Response 403 (application/json)
+
+        {
+            "Code": "Restricted Access"
+        }
+        
+<!--## Meta [/meta]-->
+
+<!--A general data store for extra app use. Each data store is contained-->
+<!--in a namespace as to segment use. This can eventually be keyed/locked-->
+<!--so only certain applications can access the namespaces.-->
+
+<!--These acts as a generic key-value store. Values pushed with existing-->
+<!--keys that are set will be overwritten. Values are merged into the-->
+<!--existing document.-->
+
+<!--### Update [PATCH /meta/{Namespace}]-->
+
+<!--Updates meta values for devices, users and profiles. Passing a-->
+<!--namespace will relegate the changes to the specific subset.-->
+
+<!--+ Parameters-->
+    + Namespace: all (string) - Namespace identifier for where to store the data.
+
+<!--+ Request (application/json)-->
+
+<!--        {-->
+<!--            "Value1": "foo",-->
+<!--            "Value2": "bar",-->
+<!--            "Value3": "fak"-->
+<!--        }-->
+
+<!--+ Response 401 (application/json)-->
+
+<!--        {-->
+<!--            "Error": "UNAUTHORIZED_ACCESS"-->
+<!--        }-->
+
+<!--+ Response 401 (application/json)-->
+
+<!--        {-->
+<!--          "Code": "META_TOO_LARGE"-->
+<!--        }-->
+
+<!--### Retrieve [GET /meta/{Namespace}{?Fields}]-->
+
+<!--Retrieves data related to a meta namespaces. Passing a querystring-->
+<!--value via the keys property will only return the value requested. This-->
+<!--is done to minimize the payload if the namespace is overburdened with-->
+<!--extra unecessary data.-->
+
+<!--Note that these endpoints may behave differently for Protobuf requests.-->
+<!--Refer to `dfx.proto` for detailed instructions.-->
+
+<!--+ Parameters-->
+<!--    + Namespace (string) - Namespace identifier or "all" for all values.-->
+    + Fields: value_1 (optional) - Comma separated list of meta values to return.
+
+<!--+ Response 200 (application/json)-->
+
+<!--        {-->
+<!--            "Value1": "foo",-->
+<!--            "Value2": "bar",-->
+<!--            "Value3": "fak"-->
+<!--        }-->
+
+<!--+ Response 200 (application/json)-->
+
+<!--        {-->
+<!--            "NamespaceValue": {-->
+<!--                "Value1": "foo",-->
+<!--                "Value2": "bar",-->
+<!--                "Value3": "fak"-->
+<!--            }-->
+<!--        }-->
+
+<!--+ Response 204 (application/json)-->
+
+<!--+ Response 401 (application/json)-->
+
+<!--        {-->
+<!--            "Code": "NAMESPACE_DOESNT_EXIST"-->
+<!--        }-->
+
+<!--### Retrieve By Type [GET /meta/{Type}/{ID}/{Namespace}{?Fields}]-->
+
+<!--Retrieves data related to a meta namespaces. Passing a querystring-->
+<!--value via the keys property will only return the value requested. This-->
+<!--is done to minimize the payload if the namespace is overburdened with-->
+<!--extra unecessary data. This endpoint is only available to organizations.-->
+
+<!--Please refrain from storing nested properties. The current API does-->
+<!--not limit it's use however, due to the structure of `dfx.proto`, only-->
+<!--key-values are supported via that transport.-->
+
+<!--+ Parameters-->
+<!--    + Namespace (string) - Namespace identifier or "all" for all values.-->
+    + Type: users (string) - Target for the meta data as either "user", "device" or "profile".
+    + Fields: value_1 (optional) - Comma separated list of meta values to return.
+<!--    + ID (string) - Only required when effecting user profiles.-->
+
+<!--+ Response 200 (application/json)-->
+
+<!--        {-->
+<!--            "Value1": "foo",-->
+<!--            "Value2": "bar",-->
+<!--            "Value3": "fak"-->
+<!--        }-->
+
+<!--+ Response 200 (application/json)-->
+
+<!--        {-->
+<!--            "NamespaceValue": {-->
+<!--                "Value1": "foo",-->
+<!--                "Value2": "bar",-->
+<!--                "Value3": "fak"-->
+<!--            }-->
+<!--        }-->
+
+<!--+ Response 204 (application/json)-->
+
+<!-- + Response 401 (application/json) -->
+
+<!--        {-->
+<!--            "Code": "NAMESPACE_DOESNT_EXIST"-->
+<!--        }-->
+
+<!--### Update By Type [PATCH /meta/{Type}/{ID}/{Namespace}]-->
+
+<!--Updates meta values for devices, users and profiles. Passing a-->
+<!--namespace will relegate the changes to the specific subset.-->
+<!--This endpoint is only available to organizations.-->
+
+<!--+ Parameters-->
+    + Namespace: all (string) - Namespace identifier for where to store the data.
+    + Type: users (string) - Target for the meta data as either "user", "device" or "profile".
+<!--    + ID (string) - Required to target the specific ID type.-->
+
+<!--+ Request (application/json)-->
+
+<!--        {-->
+<!--            "Value1": "foo",-->
+<!--            "Value2": "bar",-->
+<!--            "Value3": "fak"-->
+<!--        }-->
+
+<!--+ Response 401 (application/json)-->
+
+<!--        {-->
+<!--            "Error": "UNAUTHORIZED_ACCESS"-->
+<!--        }-->
+
+<!--    + Response 401 (application/json)-->
+
+<!--        {-->
+<!--          "Code": "META_TOO_LARGE"-->
+<!--        }-->
+
+### Delete [DELETE /users/:ID/measurements]
+
+Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific user for its own organization.
+
++ Parameters
+    + ID (string) - Requested User UUID.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Response 200 (application/json)
+
+### Change Password [POST /users/changepassword]
+
+This End Point allow user to change password for already verified user
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Request (application/json)
+
+        {
+            "Identifier": "Org identifier",
+            "Email": "test@outlook.com",
+            "Password": "myOldPassword",
+            "NewPassword": "myNewPassword"
+        }
+
++ Response 200 (application/json)
+        {
+            "success": true
+        }
+
+## Profiles [/profiles]
+
+Profiles are elements of user accounts. A single user
+account may maintain a number of profiles to help segment
+different types of users.
+
+### Create Profile [POST /users/profiles]
+
+Creates a user profile under a main user account. User profiles
+may be used to segment different accounts for measurements.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "Name": "John",
+            "Email": "doe@gmail.com"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "NAMESPACE_DOESNT_EXIST"
+        }
+
+### Update Profile [PATCH /users/profiles/{ID}]
+
+Updates a specific user profile. To update status the
+valid options are: ACTIVE and INACTIVE.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Parameters
+    + ID (string) - Profile ID to perform the update for.
+
++ Response 200 (application/json)
+
+        {
+            "Name": "John",
+            "Email": "doe@gmail.com",
+            "Status": "INACTIVE"
+        }
+
++ Response 200 (application/json)
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Remove Profile [DELETE /users/profiles/{ID}]
+
+Removes the user profile entirely. It also deletes any
+related meta fields associated with the profile.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Parameters
+    + ID (string) - Profile ID to perform the delete operation on.
+
++ Response 200 (application/json)
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Retrieve Profile [GET /users/profiles/{ID}]
+
+Retrieves a single user Profile specified by `ID`.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Parameters
+    + ID (string) - Profile ID to perform the delete operation on.
+
++ Response 200 (application/json)
+
+        {
+            "ID": "2384b2-945c",            
+            "Name": "John",
+            "Email": "doe@gmail.com",
+            "Status": "ACTIVE",
+            "MeasurementCount": 0, 
+            "Created": 1512325663,
+            "Updated": 1512325663
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### List Profiles [GET /users/profiles{?UserProfileName,Status,Limit,Offset}]
+
+Lists specific profiles managed under the current user account.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Parameters
+    + UserProfileName: john@doe.com (string, optional) - Profile name
+    + Status: ACTIVE (string, optional) - Profile status
+    + Limit: 25 (number, optional) - limit the number of results
+        + default 25
+    + Offset: 0 (number, optional) - offset the number of results
+        + default 0
+
++ Response 200 (application/json)
+
+        [
+            {
+        "ID": "945c-4201-b121",
+        "OwnerUserEmail": "myname@nuralogix.ai",
+        "Name": "guest",
+        "Email": "myname@nuralogix.ai",
+        "Status": "ACTIVE",
+        "MeasurementCount": 13,
+        "Created": 1587128885,
+        "Updated": 1587128885,
+        "TotalCount": "2"
+             },
+    {
+        "ID": "f613ef-6c30ccecd935",
+        "OwnerUserEmail": "test@nuralogix.ai",
+        "Name": "user",
+        "Email": "test@nuralogix.ai",
+        "Status": "ACTIVE",
+        "MeasurementCount": 204,
+        "Created": 1587067837,
+        "Updated": 1587067837,
+        "TotalCount": "2"
+    }
+        ]
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### List Profiles By User [GET /users/{ID}/profiles{?UserProfileName,Status,Limit,Offset}]
+
+Lists specific profiles managed under a single user account specified by the `ID` in the request parameters.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Parameters
+    + ID: Profile ID to perform the listing on
+    + UserProfileName: john@doe.com (string, optional) - Profile name
+    + Status: ACTIVE (string, optional) - Profile status
+    + Limit: 25 (number, optional) - limit the number of results
+        + default 25
+    + Offset: 0 (number, optional) - offset the number of results
+        + default 0
+
++ Response 200 (application/json)
+
+            {
+                "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+                "Name": "John",
+                "Email": "doe@gmail.com",
+                "Status": "INACTIVE",
+                "MeasurementCount": 13,
+                "Created": 1490130485,
+                "Updated": 1490130485
+            }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+## Measurements [/measurements]
+
+Measurements are individual one-time captures of blood flow data. A single
+measurement record could represent multiple models of data analysis,
+hence this data structure supports lookup parameters to filter them.
+
+For consumers using the WS Proto transport method, extra options for streaming
+live results are available. The detailed explanation of streaming implementation will be added later.
+
+**Note:**
+A valid License is required in order to create Measurements and submit data chunks for processing.
+Please make sure to call <a href='/#reference/0/organizations/register-license'>Register License</a> endpoint first to receive a *Device Token* that grants access to these functions.
+Next, in order to have your User information associated with taken Measurements, you can use <a href='/#reference/0/users/login'>User Login</a> endpoint to obtain a *User Token*, which can be used to take Measurements as well.
+<br><br>**Important:** 
+if your License Type is `SDK_DEVICE`, you must login and obtain User Token as this License Type only allows to perform a login operation.  
+
+### Create [POST /measurements]
+
+Begins a new data capture session and returns a measurement ID property, which
+should be referenced for adding data chunks and retreiving results.
+
+**Resolution:** currently can be either 0 or 100.
+(default is 100)
+
+- 100 means the result set will have 100% of the original size
+- 0 returns 1 value per signal
+- Based on License policy PartnerID is mandatory or optional.
+
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
+    + Body
+
+        {
+            "StudyID": "7ab8bee7-808c-4123-9811-e385adb8c77d",
+            "Resolution": 100,
+            "UserProfileID": "Profile`s UUID (optional)",
+            "PartnerID": "<partnerID> (optional or mandatory depending on license policy)"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+        }
+
+### Add Data [POST /measurements/{MeasurementID}/data]
+
+Adds collected data to a specific measurement. Upon submitting a chunk of data, the
+API will return a `MeasurementDataID` value representing the received chunk. Data
+must be sent to the server in chronological order, counted via the `ChunkOrder` property.
+`ChunkOrder` must start at 0 and increment by 1 with each new chunk submission. If a chunk it sent out of order, the server will return an error.
+Please ensure that new chunks are only sent once the server responds back with a `MeasurementDataID`.
+
+Submitting measurements has three stages: a) starting, b) measurement body, c) closing
+a measurement. Each of these phases have the same payload structure however a different
+`Action` flag is to be sent with each request and must follow the `CHUNK::ACTION` format.
+
+
+|Measument Actions | Description                                                          |
+|------------------|----------------------------------------------------------------------|
+| FIRST::PROCESS   | Start a New Measurement (drop any existing), PROCESS Results         |
+| FIRST::IGNORE    | Start a New Measurement (drop any existing), DO NOT PROCCESS Results | 
+|                                                                                         |    
+| CHUNK::PROCESS   | Arbtitrary block of TOI data and PROCESS Results                     |
+| CHUNK::IGNORE    | Arbtitrary block of TOI data and DO NOT PROCCESS Results             |
+|                                                                                         |
+|LAST::PROCESS     | Finish a measurement cycle and PROCESS Results                       |
+|LAST::IGNORE      | Finish a measurement cycle and DO NOT PROCCESS Results               |
+
+
+`Payload` is a binary data that can currently only be obtained by using our SDK.<br>
+`Meta` is supplied by our SDK as well and should be passed to the API as is.
+
+If you are using REST or Websockets transports, with JSON data payloads 
+(i.e. without protobuffs) the `Payload` (binary content) field must be **base64-encoded**.
+If you are using Websockets with Protobuf transport, the binary payload is just a regular byte array.
+(`Buffer` object in Javascript, `Bytes` object in Python, `byte[]` in C/C++)
+
+`StartTime` and `EndTime` parameters should be in seconds and `StartTime` of a chunk cannot be smaller than `EndTime` of the previously sent chunk in a given Measurement.
+The difference between `StartTime` and `EndTime` cannot exceed 100 seconds and cannot be smaller than 5 seconds.
+
+**Note:**<br/>
+This endpoint is a subject to request throttling, users are encouraged not to submit more data than can be obtained in real time. I.e. do not send more
+than 2 minutes of chunk durations over the course of 2 minutes of real time. 
+
+**Response Error Codes Explanation:**
+- "RATE_LIMIT": You have sent too many chunks in a given time period. See the Note above.
+- "MEASUREMENT_CLOSED": Requested Measurement is already finished. You need to create a new Measurement.
+- "MISALIGNED_CHUNK": Chunk Order was mismatched. I.e. ChunkOrder 2 was sent before ChunkOrder 1.
+- "INVALID_MEASUREMENT": Requested Measurement ID was not found.
+
++ Parameters
+    + MeasurementID: Measurement UUID to add data to.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
+    + Body
+
+        {
+            "ChunkOrder": 0,
+            "Action": "FIRST::PROCESS",
+            "StartTime": 0,
+            "EndTime": 30,
+            "Meta": "comes from SDK",
+            "Payload": "binary payload, comes from SDK"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d",
+            "ChunkOrder": 0
+        }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_MEASUREMENT"
+        }
+
++ Response 500 (application/json)
+
+        {
+            "Code": "MEASUREMENT_CLOSED"
+        }
+
++ Response 500 (application/json)
+
+        {
+            "Code": "MISALIGNED_CHUNK"
+        }
+
+### List [GET /measurements{?Limit,Offset,Date,EndDate,UserProfileID,UserProfileName,StudyID,StatusID}]
+
+Provides a historical list of measurements captured by the API
+store. The results of the measurements are captured and only displayed
+for the current application providers token designator. Each record
+has a status representing its cycle in the system:
+
+|Status Message|Description                                                  |
+|--------------|------------------------------------------------------------ |
+| CAPTURING    | A new record was created and results are being received.    |
+| PROCESSING   | Capture is complete and the record is processing.           |
+| COMPLETE     | The analysis is complete and ready for consumption.         |
+| ERROR        | An error occurred during processing.                        |
+| INCOMPLETE   | Capturing process returned as incomplete/not enough data.   |
+
++ Parameters
+    + Limit (integer, optional) - Number of measurement records to return.
+        + default 50
+    + Offset (integer, optional) - Offset to specify the start of the count.
+        + default 0
+    + Date (optional) - The date to return measurements for yyyy-mm-dd.
+    + EndDate (optional) - End date for range of measurements to receive.
+    + UserProfileID (string, optional) - filter by a Profile ID.
+    + UserProfileName (string, optional) - filter by a Profile ID.
+    + StudyID (string, optional) - filter by Study ID.
+    + StatusID (string, optional) - filter by measurement Status.
+    + PartnerID (string, optional) - filter by Partner ID.
+
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
++ Response 200 (application/json)
+
+        [
+            {
+                "ID": "28c2823b-5360-49a9-a3b9-17ac8af9587b",
+                "UserID": "ed855f12-248c-4bd9-baf9-6d847a1c431f",
+                "UserProfileID": null,
+                "UserProfileName": null,
+                "DeviceID": null,
+                "StudyID": "bb61de8b-c64b-421c-9961-8bf4873fdef2",
+                "StatusID": "IN_PROGRESS",
+                "DeviceVersion": null,
+                "Mode": "SURVEY",
+                "Created": 1498425108,
+                "Updated": 1498425108,
+                "TotalCount": 2
+            },
+            {
+                "ID": "42c1197a-5854-4ef2-88d8-0159204607a6",
+                "UserID": "ed855f12-248c-4bd9-baf9-6d847a1c431f",
+                "UserProfileID": null,
+                "UserProfileName": null,
+                "DeviceID": null,
+                "StudyID": null,StatusID
+                "Status": "IN_PROGRESS",
+                "DeviceVersion": null,
+                "Mode": "SURVEY",
+                "Created": 1498470843.82706,
+                "Updated": 1498470843.82706
+            }
+        ]
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
+### Retrieve [GET /measurements/{ID}]
+
+Returns the results of a measurement request specified by the UUID
+in the endpoint request. This payload will change according to the
+different requested signals.
+
++ Parameters
+    + ID (string) - Requested measurement UUID.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+    "Created": 1603378421,
+    "Updated": 1603378457,
+    "ID": "163e8499-e79c-4f42-bbc0-419e8adc6498",
+    "OrganizationID": "d17e0fcd-e65d-45a8-af7a-6285d503d9d8",
+    "StatusID": "COMPLETE",
+    "UserID": "e8ff1a65-2afe-4be4-bded-6880e660fa2c",
+    "UserProfileID": "e6f613ef-8fd2-4033-b509-6c30ccecd935",
+    "DeviceID": "2c995d12-3c8b-4812-b604-ffa1876c2ff0",
+    "StudyID": "17405480-3372-4564-918a-417edc93df23",
+    "Resolution": 0,
+    "DeviceVersion": null,
+    "Comments": {},
+    "Mode": "DISCRETE",
+    "City": "Brampton",
+    "State": "ON",
+    "Country": "CA",
+    "Region": "na-east",
+    "PartnerID": null,
+    "Results": {},
+    "SignalNames": {},
+    "SignalDescriptions": {},
+    "SignalConfig": {},
+    "SignalUnits": {},
+    "DataSizeBytes": 0
+}
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_MEASUREMENT"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
+
+### Subscribe to Results [GET /measurements/{ID}/results]
+
+This endpoint is only accessible to socket transports. In order to receive live
+results from a measurement, you must touch this endpoint. Included in the body
+of the request you must supply a `RequestID` which is used as the response identifier.
+The socket API will deliver results back consistently with the same specified request
+identifier.
+
+The results subscribership will automatically close on disconnection, completion of
+a measurement. You can resubscribe for longer measurements if necessary.
+
+Please review the `dfx-deps` proto definitions for further details on its use.
+
+The size `RequestID` must be between 0 and 15.
+
++ Parameters
+    + ID (string) - Requested measurement UUID.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
+    + Body
+
+        {
+            "RequestID": "0000000001"
+        }
+
++ Response 200 (application/json)
+
+### Delete [DELETE /measurements/{MeasurementID}]
+
+Only DFX_ORG_ADMIN has permission to delete a specific measurment by measurement ID for its own organization.
+
++ Parameters
+    + ID (string) - Requested measurement UUID.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Response 200 (application/json)        
+
+
+## Organizations [/organizations]
+
+This set of endpoints covers functions that allow to access resources on the Organizational level.
+All endpoints require Researcher, Lead or Admin access. 
+
+### Retrieve [GET]
+
+Retrieves information related to the current organization account.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+    {
+        "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d",
+        "Name": "NuraLogix Corporation",
+        "Identifier": "nuralogix-corp",
+        "StatusID": "ACTIVE",
+        "Contact": null,
+        "Email": null,
+        "PasswordMinLength": 5,
+        "AdminPasswordMinLength": 5,
+        "PasswordRequireCharacterClasses": 0,
+        "PasswordRequireUppercase": false,
+        "PasswordRequireLowercase": false,
+        "PasswordRequireDigits": false,
+        "PasswordRequireSpecial": false,
+        "PasswordRotateDays": 0,
+        "RequireUniquePasswordsCount": 0,
+        "OrgAddresses": [],
+        "LivenessConfig": {
+            "VisageLiveness": false,
+            "FakeDetection": false,
+            "SNRThresholding": true
+        },
+        "Created": 1490130485,
+        "Updated": 1490130485
+    }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Update [PATCH]
+
+Updates current organization account. Apart from general organization information (name, logo, contact info),
+allows setting organization password policy:
+
+| Property | Description |
+|-------|-------------|
+| PasswordMinLength | Min password length of regular user accounts (all roles except for DFX\_ORG\_ADMIN) |
+| AdminPasswordMinLength | Min password length for DFX\_ORG\_ADMIN users |
+| PasswordRequireCharacterClasses | Number of unique character types (upper, lower, number, special) that password should be made of |
+| PasswordRequireUppercase | Whether or not a password should include upper case characters |
+| PasswordRequireLowercase | Whether or not a password should include lower case characters |
+| PasswordRequireDigits | Whether or not a passwrod should include digits |
+| PasswordRequireSpecial | Whether or not a password should include sppecial characters: punctuation, #, %, etc. |
+| PasswordRotateDays | Number of days after a password was set till user is forced to change the password | 
+| RequireUniquePasswordsCount | Number of unique passwords user must set before older passwords can be reused |
+
+*Note*. `PasswordRequireCharacterClasses` works independently from `PasswordRequireUppercase`, `PasswordRequireLowercase`, `PasswordRequireDigits` and `PasswordRequireSpecial`.
+`PasswordRequireCharacterClasses` requires just the number of character types without focusing at the character types themselves.
+E.g. if 2 character classes are required, passwords made of lower and upper case characters (`aaAA`), or digits and special (`00##`) will be accepted.
+
+Combining `PasswordRequireCharacterClasses` with `PasswordRequire*` properties allows setting more complex rules. E.g. requiring 3 character classes along with `PasswordRequireSpecial` forces passwords to include at least three character types, one of which must be _special_. 
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
+    + Body
+
+        {
+            "Name": "New Name",
+            "Identifier": "new-identifier",
+            "Contact": "FirstName LastName",
+            "Email": "contact@email.com",
+            "Logo": null,
+            "StatusID"   : "ACTIVE",
+            "PasswordMinLength": 6,
+            "AdminPasswordMinLength": 7,
+            "PasswordRequireCharacterClasses": 3,
+            "PasswordRequireUppercase": false,
+            "PasswordRequireLowercase": false,
+            "PasswordRequireDigits": false,
+            "PasswordRequireSpecial": true,
+            "PasswordRotateDays": 90,
+            "RequireUniquePasswordsCount": 5,
+        }
+
++ Response 200 (application/json)
+
+        {
+            "success": true
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+
+
+### Users [GET /organizations/users{?Limit,Offset,StartDate,EndDate,Username,RoleID,Gender,StatusID}]
+
+Retrieves a list of users in the current organization.
+This endpoint can filter by groups and account creation start and end dates
+to make sorting and filtering easier.
+
++ Parameters
+    + Limit (integer, optional) - The number of users to pull from the list.
+        + default 25
+    + Offset (integer, optional) - Offset of the results to start at.
+        + default 0
+    + StartDate (string, optional) - Account creation start date in the format YYYY-MM-DD.
+    + EndDate (string, optional) - Account creation end date in the format YYYY-MM-DD.
+    + Username (string, optional) - filter by user's email.
+    + RoleID (string, optional) - filter by user's Role.
+    + Gender (string, optional) - filter by user's gender.
+    + StatusID (string, optional) - filter by user's Status.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        [
+            {
+                "Gender": "other",
+                "DateOfBirth": null,
+                "Created": 1604084692,
+                "Updated": 1604084692,
+                "ID": "7159c503-8ac3-45e5-b6aa",
+                "FirstName": "John",
+                "LastName": "Appleseed",
+                "Email": "john3@example.com",
+                "PhoneNumber": null,
+                "RoleID": "NURA_APP_USER",
+                "LoginMethod": "Email",
+                "Region": "na-east",
+                "TotalCount": 88
+             },
+            {
+                "Gender": "other",
+                "DateOfBirth": null,
+                "Created": 1604084253,
+                "Updated": 1604084253,
+                "ID": "486f-b6e1-23605e4a9b4b",
+                "FirstName": "John",
+                "LastName": null,
+                "Email": "john2@example.com",
+                "PhoneNumber": null,
+                "RoleID": "NURA_APP_USER",
+                "LoginMethod": "Email",
+                "Region": "na-east"
+             }
+        ]
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Create User [POST /organizations/users]
+
+Creates a user under the organization. Available only to an Administrator.
+An email will be sent to submitted Email address with a link to setup password for the account.
+To create a user under your organization. You will need to be logged in as a DFX_LEAD,  DFX_ORG_ADMIN
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
+    + Body
+
+        {
+            "FirstName"   : "John",
+            "LastName"    : "Appleseed",
+            "Email"       : "john@example.com",
+            "Gender"      : "male",
+            "DateOfBirth" : "1986-02-10",
+            "RoleID"      : "RoleID"
+        }
+        
++ Response 200 (application/json)
+
+        {
+            "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+            "ResetToken": "41f20423-e295-474d-9f52-f784b5a439cb" 
+        }
+
++ Response 401 (application/json)
+
+        {
+          "Code"    : "VALIDATION",
+          "Errors"  : { 
+            "DateOfBirth": [ "INVALID_DATE_RANGE" ] 
+          }
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Register License [POST /organizations/licenses]
+
+Allows consumers to exchange a license key for a device token. This
+endpoint is accessible publically to all consuming clients. License
+keys are mapped against an organization. Upon submitting a registration
+key and relevant information associated with the device to be registered,
+DFX API will respond with a referencing DeviceID and a token for future
+device-specific API requests. The resulting token is a `Device Token`.<br>
+<b>Note:</b> make sure to store the obtained token locally as most Licenses (e.g. Trial) allow for
+a limited number of registered Devices. To unregister a Device and gain one License use back, call <a href='/#reference/0/organizations/unregister-license'>Unregister License</a>
+endpoint with your `Device Token`.
+
+If you are passing token subject in request than in order to use this token client should pass    --header 'Referer: http://deepafex.ai' \ in request
+
++ Request (application/json)
+
+        {
+            "Key": "LICENSE_KEY",
+            "DeviceTypeID": "LINUX",
+            "Name": "DFX Desktop",
+            "Identifier": "DFXCLIENT",
+            "Version": "1.0.0",
+            "TokenExpiresIn": 20, <!-- optional value in seconds    [-->
+            "TokenSubject": "http://deepafex.ai" <!-- optional header   [-->
+        }
+
++ Response 200 (application/json)
+
+        {
+            "DeviceID": "876ff630-84f8-45d8-b30e-6ebeb42c0d85",
+            "Token": "YOUR_API_TOKEN",
+            "RoleID": "Role associated with your License",
+            "UserID": "User account associated with your License"
+        }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_LICENSE_KEY", 
+            "Message": "License Key LICENSE_KEY not found" 
+        }
+
+### Unregister License [DELETE /organizations/licenses]
+
+Send your `Device Token` as the Authorization header to decommission a registered device. Note that this does not delete the Device.
+
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
+
++ Response 200 (application/json)
+    
+
++ Response 404 (application/json)
+
+        {
+            "Code": "DEVICE_NOT_ACTIVE", 
+            "Message": "Device must be Active in order to be deregistered" 
+        }
+
+### Logo [GET /organizations/:ID/logo]
+
+Retrieves an Organization logo. This endpoint will returns you a buffer containing a logo
+
++ Parameters
+  
+    + ID (string) - Organization ID.
+    
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+       {
+        "{\"Name\":\"杭州师范大学附属医院 (HZ2Y)\",\"Identifier\":\"zjnu\",\"Created\":1536170947,\"Updated\":1536170947}"
+
+       }
+        
+### List Measurements [GET /organizations/measurements{?Limit,Offset,Date,EndDate,UserProfileID,UserProfileName,StudyID,StatusID,Username}]
+
+Similar to <a href='/#reference/0/measurements/list'>Measurements --> List</a> but retrieves all measurements across an Organization.
+Accessible by users with Researcher or Admin role.
+
++ Parameters
+    + Limit (integer, optional) - Number of measurement records to return.
+        + default 50
+    + Offset (integer, optional) - Offset to specify the start of the count.
+        + default 0
+    + Date (date, optional) - The date to return measurements for yyyy-mm-dd.
+    + EndDate (date, optional) - End date for range of measurements to receive.
+    + UserProfileID (string, optional) - filter by a Profile ID.
+    + UserProfileName (string, optional) - filter by a Profile ID.
+    + StudyID (string, optional) - filter by Study ID.
+    + StatusID (string, optional) - filter by measurement Status ID.
+    + UserName (string, optional) - filter by User email.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
++ Response 200 (application/json)
+
+        [
+            {
+                "ID": "ca88f373-b24c-4111-a21d-7948946f2178",
+                "StudyID": "c4ba9062-a183-4624-ac5a-710eff8741d2",
+                "StatusID": "COMPLETE",
+                "DeviceID": "e4fd5a6c-80bb-4035-b873-a472ef4732b2",
+                "Mode": "DISCRETE",
+                "UserName": "test@nuralogix.ai",
+                "UserProfileName": null,
+                "Created": 1498425108,
+                "Updated": 1498425108,
+                "TotalCount": 2
+            },
+            {
+                "ID": "88de56e4-c17b-44e7-89ef-9e04aa399286",
+                "StudyID": "c4ba9062-a183-4624-ac5a-710eff8741d2",
+                "StatusID": "WARNING",
+                "DeviceID": "e4fd5a6c-80bb-4035-b873-a472ef4732b2",
+                "Mode": "DISCRETE",
+                "UserName": "test1@nuralogix.ai",
+                "UserProfileName": null
+                "Created": 1498470843.82706,
+                "Updated": 1498470843.82706,
+            }
+        ]
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+        
+### Retrieve Measurement [GET /organizations/measurements/{ID}]
+
+Similar to <a href='/#reference/0/measurements/retrieve'>Measurements --> Retrieve</a> but retrieves a measurement across the Organization.
+Accessible by users with Researcher or Admin role.
+
++ Parameters
+    + ID (string) - Requested measurement UUID.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+            "ID": "88de56e4-c17b-44e7-89ef-9e04aa399286",
+            "OrganizationID": "d17e0fcd-e65d-45a8-af7a-6285d503d9d8",
+            "StatusID": "WARNING",
+            "UserID": "6f4db33e-abd2-435d-ab68-c7ddd39cf5c2",
+            "UserProfileID": null,
+            "DeviceID": "e4fd5a6c-80bb-4035-b873-a472ef4732b2",
+            "StudyID": "c4ba9062-a183-4624-ac5a-710eff8741d2",
+            "Resolution": 0,
+            "DeviceVersion": null,
+            "Comments": {}
+            "Mode": "DISCRETE",
+            "City": "Markham",
+            "State": "ON",
+            "Country": "CA",
+            "Region": "na-east",
+            "PartnerID": null,
+            "Results": {},
+            "SignalNames": {},
+            "SignalDescriptions": {},
+            "SignalConfig": {},
+            "SignalUnits": {},
+            "DataSizeBytes": 143000,
+            "Created": 1498815622,
+            "Updated": 1498815622
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "FORBIDDEN", 
+            "Message": "" 
+        }
+
+### List Profiles [GET /organizations/profiles{?UserProfileName,OwnerUser,Limit,Offset,StatusID,Created}]
+
+Similar to <a href='/#reference/0/profiles/list'>Profiles --> List</a> but retrieves Profiles across the Organization.
+Accessible by users with Researcher or Admin role.
+
++ Parameters
+    + OwnerUser: john@doe.com (string, optional) - Profile owner's email to filter by.
+    + UserProfileName: john@doe.com (string, optional) - Profile's name to filter by.
+    + StatusID (string, optional) - filter by profile StatusID.
+    + Created (date, optional) - filter by creation date.
+    + Limit: 10 (number, optional) - limit the number of results.
+        + default 25
+    + Offset: 0 (number, optional) - offset the number of results.
+        + default 0
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        [
+            {
+                "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+                "Name": "John",
+                "Email": "doe@gmail.com",
+                "Status": "INACTIVE",
+                "MeasurementCount": "5",
+                "OwnerUser": null,
+                "Created": 1490130485,
+                "Updated": 1490130485,
+                "TotalCount": 2
+            },
+            {
+                "ID": "7ab8bee7-808c-4123-9811-e385adb8c77e"
+                "Name": "Mike",
+                "Email": "mike@gmail.com",
+                "Status": "ACTIVE",
+                "MeasurementCount": "2",
+                "OwnerUser": null,
+                "Created": 1490130485,
+                "Updated": 1490130485,
+            }
+        ]
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Retrieve Profile [GET /organizations/profiles/{ID}]
+
+Similar to <a href='/#reference/0/profiles/retrieve'>Profiles --> Retrieve</a> but retrieves a Profile across the Organization.
+Accessible by users with Researcher or Admin role.
+
++ Parameters
+    + ID (string) - Profile UUID
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+            "ID": "364d3fb2-d018-48f1",
+            "Name": "John",
+            "Email": "doe@gmail.com",
+            "Status": "ACTIVE",
+            "MeasurementCount": 8,
+            "Created": 1512325663,
+            "Updated": 1512325663
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Update Profile [PATCH /organizations/profiles/{ID}]
+
+Similar to <a href='/#reference/0/profiles/update'>Profiles --> Update</a> but updates a Profile from the Organization.
+Accessible by users with Researcher or Admin role.
+
++ Parameters
+    + ID (string) - Profile ID to perform the update on.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
+    + Body
+
+        {
+            "Name": "John",
+            "Email": "doe@gmail.com",
+            "Status": "INACTIVE"
+        }
+
++ Response 200 (application/json)
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+
+### Retrieve User [GET /organizations/users/{ID}]
+
+Similar to <a href='/#reference/0/users/retrieve'>Users --> Retrieve</a> but retrieves a User from the Organization.
+Accessible only by users with Admin role.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+         
+            "Gender": "other",
+            "DateOfBirth": null,
+            "Created": 1604687477,
+            "Updated": 1604687477,
+            "ID": "ac4d-5687b8777f2a",
+            "OrganizationID": "d65d-45a8-af7a-6285d503d9d8",
+            "RoleID": "NURA_APP_USER",
+            "StatusID": "ACTIVE",
+            "Email": "testu@nuralogix.ai",
+            "Password": "fT4uGGEjNHn83lM.C6K6CyzPWYZUV.2",
+            "FirstName": null,
+            "LastName": null,
+            "ResetToken": null,
+            "ResetTokenDate": null,
+            "AvatarURI": null,
+            "IsVerified": true,
+            "VerificationCode": "na",
+            "PhoneNumber": null,
+            "DeviceID": "122257c7-a5e5-b096eaa2f00c",
+            "HeightCm": null,
+            "WeightKg": null,
+            "LoginMethod": "Email",
+            "SSOID": null,
+            "Region": "na-east"
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Update User [PATCH /organizations/users/{ID}]
+
+Similar to <a href='/#reference/0/users/update'>Users --> Update</a> but updates a User from the Organization.
+Accessible only by users with Admin role.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
+    + Body
+
+        {
+            "FirstName": "John",
+            "LastName": "Appleseed",
+            "Gender": "male",
+            "DateOfBirth": "1986-02-10",
+            "HeightCm": "180",
+            "WeightKg": "60"
+        }
++ Response 200 (application/json)
+        { 
+        "success": true 
+        } 
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Delete User [DELETE /organizations/users/{ID}]
+
+Similar to <a href='/#reference/0/users/remove'>Users --> Remove</a> but performed by an Organization's Admin.
+Accessible only by users with Admin role.
+
++ Parameters
+    + ID: user account ID
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+        { 
+            "success": true 
+        } 
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### Login [POST /organizations/auth]
+
+Login and obtain User Token.
+
+**Note:** Token obtained from this endpoint does not allow you to take Measurements and is intended for viewing purposes only.
+
+**Note:** `MFAToken` parameter is required only when 2FA authentication is enabled. See <a href='/#reference/0/users/create-two-factor-authentication-secret'>User --> Create secret</a>
+
++ Request (application/json)
+
+            {
+                "Email": "joe@example.com",
+                "Password": "foobar",
+                "Identifier": "org_identifier",
+                "MFAToken": "123456"
+            }
+
++ Response 200 (application/json)
+
+        {
+            "Token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiIxYTY3ODI2Mi03NjgxLTQ4NTItYjkxZS00NzBiOGIzMzBlMmIiLCJPcmdhbml6YXRpb25JZCI6ImNmMTAyYzQyLWYyYmEtNGU4Ny1hOTU0LWU0NDlkZTZmMWRkMiIsIkRldmljZUlkIjpudWxsLCJpYXQiOjE0OTU3MjQ1MjEsImV4cCI6MTUzMTcyMDkyMSwiaXNzIjoidXJuOm51cmFsb2dpeCJ9.JRAhY36Eh6MwlQ2RF4w47p2pQBwG2HQaOdSsxvqqk-rZ-jKRyyWvS8gtRtJ83qwba3qwTB893LZfPio2cwEG5IUU6OV0C1VCOI4cvPw6QAHarz2yx65Y9QHnSxfyA_AFIXBEIjvUVUEyPYWp6AyzC8izwtWlP2DznTMGrFTBJfG36siAn8RlGYBXf-A4dehMsKAKcq8q_s4CeTjATjOa2MbCHLQ3H6PEmG6kks98psJ4q0Z6zhycNIDCL1D6adpR208jj-0TfxJ-7wQSY528Y7t4qs7bCFdp5yzoP7ueiYfefk03IUjYcsFxN_FmVlPWbpMWhmgI4HN-yE2GM6l0tA"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "INVALID_CREDENTIALS",
+            "Message": "Invalid Credentials" 
+        }
+
+### Delete [DELETE /organizations/:ID/measurements]
+
+Only DFX_ORG_ADMIN has permission to delete all measurment for its own organization.
+
++ Parameters
+    + ID (string) - Requested Organization UUID.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Response 200 (application/json)
+
+### Delete Partner Measurement [DELETE /organizations/:ID/partners/:PartnerID/measurements]
+
+Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific partner ID for its own organization.
+
++ Parameters
+    + ID (string) - Requested Organization UUID.
+    + PartnerID (string) - Requested PartnerID.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Response 200 (application/json)   
+
+## Studies [/studies]
+
+Studies are organized segments of analyses that guide the measurement
+process. Studies consist of `Types`, `Templates` and `Assets`. A study
+type is a general, high-level grouping for studies. A template is a
+pre-built study standard created and made available by the Nuralogix team.
+Templates are version controlled and named for use with a study.
+
+
+### Types [GET /studies/types{?StatusID}] 
+
+Retrieves a list of studies that act as templates or base types. Types
+can be filtered by the Status querystring value. This is useful for
+looking up all studies and current.
+
++ Parameters
+    + StatusID (string, optional) - Filter for listing by status flag.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        [
+              {
+        "ID": "GENERAL",
+        "StatusID": "ACTIVE",
+        "Name": "Generic",
+        "Description": "\"Non-specific\" industry and/or application area."
+    },
+    {
+        "ID": "HEALTH",
+        "StatusID": "ACTIVE",
+        "Name": "Health",
+        "Description": "\"Health/Wellness\" applications and/or related activities."
+    },
+    {
+        "ID": "EMOTION",
+        "StatusID": "ACTIVE",
+        "Name": "Emotion",
+        "Description": "\"Emotion decoding\" applications and/or related activities."
+    },
+    {
+        "ID": "FINTECH",
+        "StatusID": "ACTIVE",
+        "Name": "Fintech",
+        "Description": "\"Financial Tech\" industry (e.g. Credit Risk assessment) and/or related activities."
+    },
+    {
+        "ID": "DECEPTION",
+        "StatusID": "ACTIVE",
+        "Name": "Deception",
+        "Description": "\"Deception detection\" applications and/or related activities."
+    },
+    {
+        "ID": "MARKETING",
+        "StatusID": "ACTIVE",
+        "Name": "Marketing",
+        "Description": "\"Marketing\" applications (e.g. Product awareness) and/or related activities."
+    },
+    {
+        "ID": "CONSUMER",
+        "StatusID": "ACTIVE",
+        "Name": "Consumer",
+        "Description": "\"Consumer\" applications and/or related activities."
+    },
+    {
+        "ID": "GAMING",
+        "StatusID": "ACTIVE",
+        "Name": "Gaming",
+        "Description": "\"Gaming\" industry (e.g. video, electronic) and/or related activities."
+    },
+    {
+        "ID": "INSURANCE",
+        "StatusID": "ACTIVE",
+        "Name": "Insurance",
+        "Description": "\"Insurance\" industry and/or related activities."
+    },
+    {
+        "ID": "SAFETY",
+        "StatusID": "ACTIVE",
+        "Name": "Safety",
+        "Description": "Public \"Safety\" industry and/or related activities."
+    },
+    {
+        "ID": "MEDIA",
+        "StatusID": "ACTIVE",
+        "Name": "Media",
+        "Description": "Public \"Media\" industry (e.g. public videos) and/or related activities."
+    }
+        ]
+
+### List Templates [GET /studies/templates/{?Status,Type}]
+
+Retrieves a list of study templates that exist in a particular organization.
+
++ Parameters
+    + Status: ACTIVE (string, optional) - If provided, narrows down results to templates of a specific StatusID.
+    + Type: HEALTH (string, optional) - If provided, narrows down results to templates of a specific StudyTypeID.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        [
+            {
+                "ID": "NURALOGIX_GENERIC",
+                "StatusID": "ACTIVE",
+                "Name": "Generic Study",
+                "Description": "Study that can be used for all purposes",
+                "BundleID": null,
+                "Config": {},
+                "StudyTypeID": "GENERAL",
+                "Signals": [
+                    "BP_SYSTOLIC",
+                    "BP_DIASTOLIC",
+                    "HEART_RATE",
+                    "MENTAL_STRESS_INDEX",
+                    "SNR",
+                    "STRESS_SCORE"
+                ],
+                "Created": 1491465784
+            }
+        ]
+
+
+
+### Create [POST /studies]
+
+Creates a new study within an organization. Studies must be based
+on a specific StudyTemplateID. Passing in config will override
+values available in the StudyType definition template.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
+    + Body
+
+        {
+            "Name": "New Study Type Name",
+            "Description": "This is a description for a study.",
+            "StudyTemplateID": "UUID",
+            "Config": {
+                "Key": "Value"
+            }
+        }
+
++ Response 200 (application/json)
+
+        {
+            "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "TEMPLATE_ACCESS_DENIED"
+        }
+
+### Update [PATCH /studies/{ID}]
+
+Updates a particular study record with new information. Organizations
+can set the status of a particular study as well to record their
+general activity and visibility. Study templates cannot be revised
+after a study is created.
+
++ Parameters
+    + ID (string) - The UUID of the study to update.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
+    + Body
+
+        {
+            "Name": "Study Type Sample",
+            "StatusID": "INACTIVE",
+            "Description": "New description goes here.",
+            "Config": {}
+        }
+
++ Response 200 (application/json)
+
+          { 
+            "success": true
+          } 
+
+### Retrieve [GET /studies/{ID}]
+
+Retrieves a study record with it's definitions and values. It also
+displays the amount of measurements captured in it to date.
+
++ Parameters
+    + ID (string) - The UUID of the study to retrieve.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+            {
+                "ID": "e2e3c2aa-e428-45a3-b28b-27f053a5676",
+                "Name": "DStudy",
+                "Description": "study",
+                "StatusID": "ACTIVE",
+                "OrganizationID": "45a8-af7a-6285d503d9d8",
+                "StudyTemplateID": "b53bbda9-7698-422a-a400-aea7c776786",
+                "StudyTemplateName": "Study",
+                "Measurements": 2,
+                "Participants": 1,
+                "Signals": [],
+                "Created": 1553012685,
+                "Updated": 1553012685
+            }
+
+### Retrieve SDK Study Config Data [POST /studies/sdkconfig]
+
+Retrieves a study's binary config data that has to be used to initialize
+the DFX SDK Factory object. Get the SDKID parameter by calling GetSDKId on 
+the DFX SDK Factory object. A response of 304 means that existing file in hand
+is up to date. 
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
+    + Body
+
+        {
+            "StudyID": "e2e3c2aa-e428-45a3-b28b-27f053a5676",
+            "SDKID": "4.4.1,1.4,Windows,AMD64",
+            "MD5Hash": "ca08cb5c01a207b4a43e9ad404adcc9a",
+        }
+
++ Response 304 (application/json)
+
+        {
+        }
+
++ Response 200 (application/json)
+
+        {
+            "ConfigFile": {
+                "type": "Buffer",
+                "data": [55,56,44,56,53,44,49,44,...]
+            },
+            "MD5Hash":"ca08cb5c01a207b4a43e9ad404adcc9a",
+        }
+
+
+### Delete [DELETE /studies/{ID}]
+
+Deletes a study. However, if there are any measurements taken under that Study already, it cannot be deleted.
+
++ Parameters
+    + ID (string) - The UUID of the study to delete.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+          { 
+            "success": true
+          } 
+
+### List [GET /studies{?StatusID}]
+
+Lists all the studies created in an organization.
+
++ Parameters
+    + StatusID: Active (string, optional) - Status of studies to lookup.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        [
+            {
+                "ID": "e2e3c2aa-e428-45a3-b28b-27f053a56767",
+                "Name": "DStudy",
+                "Description": "study",
+                "StudyTemplateID": "b53bbda9-7698-422a-a400-aea7c7e09898",
+                "Measurements": 2,
+                "Participants": 1,
+                "StatusID": "ACTIVE",
+                "Created": 1553012685,
+                "Updated": 1553012685,
+                "TotalCount": 5
+            },
+            {
+                "ID": "e2e3c2aa-e428-45a3-b28b-27f053a56767",
+                "Name": "DStudy",
+                "Description": "study",
+                "StudyTemplateID": "b53bbda9-7698-422a-a400-aea7c7e09898",
+                "Measurements": 2,
+                "Participants": 1,
+                "StatusID": "ACTIVE",
+                "Created": 1553012685,
+                "Updated": 1553012685,
+                "TotalCount": 5
+            },
+        ]
+
+### Delete Study Measurement [DELETE /studies/:ID/measurements]
+
+Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific study for its own organization.
+
++ Parameters
+    + ID (string) - Requested Study UUID.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Response 200 (application/json)    
+
+## Devices [/devices]
+
+Devices can be used to record the platform by which a measurement
+captured was conducted on. The DeviceTypeID references a pre-defined
+set of devices with the following chart. New Device Types cannot be created
+by organizations and are managed by the API specifically. Devices types
+can be retrieved from a dedicated endpoint returning all their values
+and meanings.
+
+### Types [GET /devices/types]
+
+Retrieves a list of allowed device types.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        [
+            {
+                "ID": "IPHONE",
+                "Name": "iPhone",
+                "Description": "All iPhone devices.",
+                "IsMobile": true,
+                "IsTablet": false,
+                "IsDesktop": false
+            },
+            {
+                "ID": "ANDROID",
+                "Name": "Android",
+                "Description": "All Android devices.",
+                "IsMobile": true,
+                "IsTablet": false,
+                "IsDesktop": false
+            }
+        ]
+
++ Response 401 (application/json)
+
+        {
+            "Error": "UNAUTHORIZED_ACCESS"
+        }
+
+### Create [POST]
+
+Creates a new device reference to associate with measurements. Each
+device is mapped to a device type ID.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
+    + Body
+
+        {
+            "Name": "Room 1 Device",
+            "DeviceTypeID": "IPHONE",
+            "Identifier": "68753A44-4D6F-1226-9C60-0050E4C00067",
+            "Version": "1.0.0"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+        }
+
+
+### Update [PATCH /devices/{ID}]
+
+Updates a device reference via the UUID supplied.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
+    + Body
+
+        {
+            "Name": "Room 1 Device",
+            "DeviceTypeID": "IPHONE",
+            "Status": "ACTIVE",
+            "Identifier": "68753A44-4D6F-1226-9C60-0050E4C00067",
+            "Version": "1.0.0"
+        }
+
++ Response 200 (application/json)
+
++ Response 401 (application/json)
+
+        {
+            "Error": "UNAUTHORIZED_ACCESS"
+        }
+
+### Retrieve [GET /devices/{ID}]
+
+Retrieves a single reference to a device. The body response
+includes details about the device and the number of measurements
+that have been associated with it.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+            "Name": "Test 2",
+            "DeviceTypeID": "IPHONE",
+            "StatusID": "ACTIVE",
+            "Identifier": "2b6f0cc904d137be2e1730235f5664094b831186",
+            "Version": "7",
+            "Created": 1498764953,
+            "Updated": 1498764953,
+            "count": "1",
+            "Region": "na-east"
+        }
+
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": "" 
+        }
+
+### List [GET /devices{?StatusID,Unique,DeviceTypeID,Name,Version,Date,EndDate,Limit,Offset}]
+
+Retrieves a list of existing devices in an organization.
+
++ Parameters
+    + StatusID: (string, optional) - Defines the particular status to look up.
+    + Unique: true (string, optional) - If set to "true", the returned list would contain Devices grouped by 'Name' and 'Platform' along with the count of unique registrations for each combination.
+    + DeviceTypeID: (string, optional) - filter the list by DeviceTypeID.
+    + Name: (string, optional) - filter the list by Device name.
+    + Version: (string, optional) - filter the list by Device version.
+    + Date: (date, optional) - filter the list by created date, beginning of window.
+    + EndDate: (date, optional) - filter the list by created date, end of window.
+    + Limit: (number, optional) - limit the number of results.
+        + default 25
+    + Offset: (number, optional) - offset the number of results.
+        + default 0
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        [
+            {
+                "ID": "0a093681-f37e-44be-9d46-b98322b2adcv",
+                "Name": "Public",
+                "DeviceTypeID": "WIN32",
+                "StatusID": "DECOMMISSIONED",
+                "Identifier": "TEST1",
+                "Version": "123.223.123",
+                "Measurements": 0,
+                "LicenseID": "ee5a6114-cdef-4162-b62f",
+                "Region": "na-east",
+                "Created": 1555102817,
+                "Updated": 1555102817,
+                "TotalCount": 123
+            },
+            {
+                "ID": "219fc464-fe6d-46f4-8b3e-a69c9571dfty",
+                "Name": "Public",
+                "DeviceTypeID": "WIN32",
+                "StatusID": "ACTIVE",
+                "Identifier": "TEST1",
+                "Version": "123.223.123",
+                "Measurements": 0,
+                "LicenseID": "ee5a6114-cdef-4162-b62f",
+                "Region": "na-east",
+                "Created": 1555100002,
+                "Updated": 1555100002
+            }
+        ]
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": ""
+        }
+
+### Delete [DELETE /device/{ID}]
+
+Deletes a device from the dataset.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS", 
+            "Message": ""
+        }
+
+
+<!--## Reports [/reports]-->
+
+<!--Reports can be generated to provide an overview of the collected data.-->
+<!--In a report each Signal's result is represented by a single averaged value,-->
+<!--i.e. we return a single number for Heart Rate, Stress Rate, etc. per measurement.-->
+<!--At the moment only reports for StudyID are available.-->
+
+<!--### Create [POST /reports/studies]-->
+
+<!--Generate a new Study Report-->
+
+<!--+ Request (application/json)-->
+<!--    + Headers-->
+ <!--       Authorization: Bearer <api token>-->
+        
+<!--    + Body-->
+
+<!--        {-->
+<!--            "StudyID": "uuid",-->
+<!--            "StartDate": "measurements start date (optional)",-->
+<!--            "EndDate": "measurements end date (optional)"-->
+<!--        }-->
+
+<!--+ Response 200 (application/json)-->
+
+
+### Delete device measurement [DELETE /devices/:ID/measurements]
+
+Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific device for its own organization.
+
++ Parameters
+    + ID (string) - Requested Device UUID.
+    
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Response 200 (application/json)    
+
+### Retrieve license ID [GET /devices/license]
+
+We want to extend the EP to use deviceID (instead of :ID) in the device token to extract license information and return to client.     
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Response 200 (application/json)  
+
+       {
+            "ID": "abca6114-b62f-e74c6df2213d",
+            "LicenseType": "MOBILE",
+            "StatusID": "ACTIVE",
+            "Expiration": null,
+            "MaxDevices": null
+        }
+
+## Licenses [/licenses]
+
+These endpoints allow to list Licenses available to your User / Organization.
+<!--and to generate license assignments for Anura devices. An assignment will include a `Url` -->
+<!--that can be converted to a scannable QR code.-->
+<!--Scanning the QR code enables your Anura device to send measurements to the-->
+<!--specified Study under your Organization.-->
+
+### Get Organization Licenses [GET /licenses/organization]
+
+List licenses available to your User / Organization. 
+<!--An `ID` from this list has to be supplied as `LicenseID` when generating an Anura license assignment.-->
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+    [
+        {
+            "ID": "dfd7f771-b49c-4d41-9cb2-139c50000",
+            "LicenseType": "DFX",
+            "StatusID": "ACTIVE",
+            "Expiration": null,
+            "Key": "key",
+            "MaxDevices": null,
+            "Created": "1594911272",
+            "DeviceRegistrations": 8,
+            "TotalCount": 2
+        },
+        {
+            "ID": "cf102c42-f2ba-4e87-a954-e449de6f1rtr",
+            "LicenseType": "DFX-DESKTOP",
+            "StatusID": "ACTIVE",
+            "Expiration": null,
+            "Key": "key",
+            "MaxDevices": null,
+            "Created": "1590534731",
+            "DeviceRegistrations": 114
+        }
+    ]
+
+
+<!--### Create Anura License [POST /licenses/studies]-->
+
+<!--Create new Anura License assignment.-->
+
+<!--+ Request (application/json)-->
+<!--    + Headers-->
+<!--        Authorization: Bearer <api token>-->
+        
+<!--    + Body-->
+
+<!--        {-->
+<!--            "LicenseID": "uuid",-->
+<!--            "StudyID": "uuid",-->
+<!--            "LoginType": "EMAIL || PHONE",-->
+<!--            "Name": "String [3-60 chars]"-->
+<!--        }-->
+
+<!--+ Response 200 (application/json)-->
+
+
+<!--### Update Anura License [PATCH /licenses/studies/{ID}]-->
+
+<!--Update Anura License assignment.-->
+
+<!--+ Parameters-->
+<!--    + ID: Anura License assignment UUID.-->
+
+<!--+ Request (application/json)-->
+<!--    + Headers-->
+        <!--Authorization: Bearer <api token>-->
+        
+<!--    + Body-->
+
+<!--        {-->
+<!--            "LicenseID": "uuid",-->
+<!--            "StudyID": "uuid",-->
+<!--            "LoginType": "EMAIL | PHONE",-->
+<!--            "Name": "String [3-60 chars]"-->
+<!--        }-->
+
+<!--+ Response 200 (application/json)-->
+
+
+<!--### List Anura Licenses [GET /licenses/studies]-->
+
+<!--List all Anura Licenses assignments.-->
+
+<!--+ Request (application/json)-->
+<!--    + Headers-->
+<!--        Authorization: Bearer <api token>-->
+
+<!--+ Response 200 (application/json)-->
+
+<!--    [-->
+<!--        {-->
+<!--            "ID": "e39df2e1-e719-4db4-9fb3-24cec6a4e29c",-->
+<!--            "Name": "new-test",-->
+<!--            "Url": "https://anura.app.link/BTmwvaystd",-->
+<!--            "LoginType": "EMAIL",-->
+<!--            "Created": "2019-04-12T16:52:04.573Z",-->
+<!--            "Updated": "2019-04-12T16:52:04.573Z",-->
+<!--            "StudyID": "e2e3c2aa-e428-45a3-b28b-27f053a58672",-->
+<!--            "LicenseID": "cf102c42-f2ba-4e87-a954-e449de6f1rtr",-->
+<!--            "Expiration": null,-->
+<!--            "TotalCount": 2-->
+<!--        },-->
+<!--        {-->
+<!--            "ID": "4a056435-9a87-41a2-8344-0557676dfd1b",-->
+<!--            "Name": "TEST",-->
+<!--            "Url": "https://anura.app.link/IfOmnVUere",-->
+<!--            "LoginType": "EMAIL",-->
+<!--            "Created": "2019-03-26T14:38:38.974Z",-->
+<!--            "Updated": "2019-03-26T14:38:38.974Z",-->
+<!--            "StudyID": "5c1d56c2-52f4-47b7-970f-39de45190tet",-->
+<!--            "LicenseID": "cf102c42-f2ba-4e87-a954-e449de6f1rtg",-->
+<!--            "Expiration": null-->
+<!--        }-->
+<!--    ]-->
+
+
+<!--### Retrieve Anura License [GET /licenses/studies/{ID}]-->
+
+<!--Get Anura License assignment by ID.-->
+
+<!--+ Parameters-->
+<!--    + ID: Anura License assignment UUID.-->
+    
+<!--+ Request (application/json)-->
+<!--    + Headers-->
+ <!--       Authorization: Bearer <api token>-->
+
+<!--+ Response 200 (application/json)-->
+
+<!--        {-->
+<!--            "ID": "4a056435-9a87-41a2-8344-0557676dfd1b",-->
+<!--            "Name": "TEST",-->
+<!--            "Url": "https://anura.app.link/IfOmnVUere",-->
+<!--            "LoginType": "EMAIL",-->
+<!--            "Created": "2019-03-26T14:38:38.974Z",-->
+<!--            "Updated": "2019-03-26T14:38:38.974Z",-->
+<!--            "StudyID": "5c1d56c2-52f4-47b7-970f-39de45190tet",-->
+<!--            "LicenseID": "cf102c42-f2ba-4e87-a954-e449de6f1rtg",-->
+<!--            "Expiration": null-->
+<!--        }-->
+
+
+<!--### Delete Anura License [DELETE /licenses/studies/{ID}]-->
+
+<!--Delete Anura License assignment by ID.-->
+
+<!--+ Parameters-->
+<!--    + ID: Anura License assignment UUID.-->
+
+<!--+ Request (application/json)-->
+<!--    + Headers-->
+<!--        Authorization: Bearer <api token>-->
+
+<!--+ Response 200 (application/json)-->
+
+
+
+<!--## Utilization [/utilization]-->
+
+<!--This endpoint provides information about your Organization's usage of the DeepAffex services.-->
+<!--Summary of the amount of stored data (in Bytes) and the total number of created measurements are available.-->
+<!--Total and Daily breakdowns of utilization are supported.-->
+
+<!--### Get Total Utilization [GET /utilization{?StartDate,EndDate}]-->
+
+<!--Get storage utilization info for your Organization.-->
+
+<!--+ Parameters-->
+    + StartDate: 2018/10/22 (date, optional) - start date filter
+    + EndDate: 2018/11/22 (date, optional) - end date filter
+
+<!--+ Response 200 (application/json)-->
+
+
+<!--### Get Daily Utilization [GET /utilization/daily{?StartDate,EndDate}]-->
+
+<!--Get daily utilization breakdown.-->
+
+<!--+ Parameters-->
+    + StartDate: 2018/10/22 (date) - start date filter
+    + EndDate: 2018/11/22 (date) - end date filter
+
+<!--+ Response 200 (application/json)-->
