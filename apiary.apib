@@ -14,27 +14,11 @@ that each service may have extra feature facilities available. The current
 DFX API does not limit access across different transports, so feel free to
 use the transports interchangeably.
 
-<!--Note that for consumers using JavaScript/Node.js the DFX API Client is available-->
-<!--and works against all API transport types.-->
-
 The API is organized into endpoint Groups and individual endpoints. For example:
 `General`, `Users`, `Profiles`, `Measurements` etc. are high-level groups
 of calls. This documentation references endpoints based on [Library].[endpoint] for
 simplicity.
 
-<!--# 1. gRPC Transport-->
-
-<!--The API supports access via Google Remote Procedure Calls. gRPC services are-->
-<!--accessible in a backwards compatible manner to the REST endpoints. All calls-->
-<!--are similar in request and response including authentication mechanisms managed-->
-<!--via the `Authenticate` header value. The gRPC interface and services outline can be-->
-<!--found in the Protocol Definitions which are centrally stored in `dfx-deps`. In-->
-<!--this package, the .proto definitions outline mapped services and request.response-->
-<!--mechanisms. Compiled versions for C++, Python and JS may also be found in this-->
-<!--package. Note that the gRPC service does not support streaming of responses yet-->
-<!--and only facilitates request/response mechanisms.-->
-
-<!--DFX gRPC services are available by connecting to: `https://api.deepaffex.ai:50051`.-->
 
 # 1. Getting Started
 
@@ -401,11 +385,6 @@ available in the mapping as they may be outlined only for internal use.
 |Devices|907|DELETE|<a href='/#reference/0/devices/delete-device-measurement'>`Delete device Measurement`</a>|/devices/:ID/measurements|
 |Devices|908|GET|<a href='/#reference/0/devices/retrieve-license-id'>`Retrieve license ID`</a>|/devices/license|
 |Licenses|1406|GET|<a href='/#reference/0/licenses/retrieve-anura-license'>`listOrgLicenses`|/licenses/organization|
-<!--|Licenses|1400|POST|<a href='/#reference/0/licenses/create-anura-license'>`createLicenseAllowedStudy`|/licenses/studies|-->
-<!--|Licenses|1401|PATCH|<a href='/#reference/0/licenses/update-anura-license'>`updateLicenseAllowedStudy`|/licenses/studies/:ID|-->
-<!--|Licenses|1402|DELETE|<a href='/#reference/0/licenses/create-anura-license'>`removeLicenseAllowedStudy`|/licenses/studies/:ID|-->
-<!--|Licenses|1403|GET|<a href='/#reference/0/licenses/list-anura-license'>`listLicenseAllowedStudies`|/licenses/studies|-->
-<!--|Licenses|1404|GET|<a href='/#reference/0/licenses/retrieve-anura-license'>`retrieveLicenseAllowedStudy`|/licenses/studies/:ID|-->
 
 # 4. Tokens
 
@@ -416,13 +395,6 @@ current access request.
 All tokens are mapped against an internal policy manager that specifies what access
 levels it has. The token policies control every access to the API.
 
-<!--## 4.1. Organization Tokens-->
-
-<!--An organization token is keyed specifically for use by an organization to request-->
-<!--more sensitive aspects of the API. For most consumers, the organization token will-->
-<!--be the primary method for accessing the API. Organization tokens are considered-->
-<!--permanent and never expire. The basic role for an organization grants access to all-->
-<!--endpoints that are not user specific.-->
 
 ## 4.1. Device Tokens
 
@@ -478,78 +450,78 @@ Retrieves a list of available status codes that can be used throughout the appli
         
 + Response 200 (application/json)
 
-[
-    {
-        "ID": "ACTIVE",
-        "Name": "Active",
-        "Description": "Active and fully operational."
-    },
-    {
-        "ID": "INACTIVE",
-        "Name": "Inactive",
-        "Description": "Inactive and not available."
-    },
-    {
-        "ID": "DELETED",
-        "Name": "Deleted",
-        "Description": "Deleted Removed and no longer available."
-    },
-    {
-        "ID": "ARCHIVED",
-        "Name": "Archived",
-        "Description": "Archived  Archived for future use."
-    },
-    {
-        "ID": "IN_PROGRESS",
-        "Name": "In Progress",
-        "Description": "In Progress or currently being process."
-    },
-    {
-        "ID": "COMPLETE",
-        "Name": "Complete",
-        "Description": "Process has finished or completed."
-    },
-    {
-        "ID": "PROCESSED",
-        "Name": "Processed",
-        "Description": "Record has been processed and is complete."
-    },
-    {
-        "ID": "INVALID",
-        "Name": "Invalid",
-        "Description": "Record is invalid and no longer relevant."
-    },
-    {
-        "ID": "PENDING",
-        "Name": "Pending",
-        "Description": "Record is in pending status."
-    },
-    {
-        "ID": "CREATED",
-        "Name": "Created",
-        "Description": "Record has been created."
-    },
-    {
-        "ID": "ERROR",
-        "Name": "Error",
-        "Description": "An error occurred for the record."
-    },
-    {
-        "ID": "DECOMMISSIONED",
-        "Name": "Decommissioned",
-        "Description": "Resource is no longer in use."
-    },
-    {
-        "ID": "WARNING",
-        "Name": "Warning",
-        "Description": "A warning happened in the server"
-    },
-    {
-        "ID": "EXPIRED",
-        "Name": "Expired",
-        "Description": "Resource has passed its expiration date"
-    }
-]
+        [
+            {
+                "ID": "ACTIVE",
+                "Name": "Active",
+                "Description": "Active and fully operational."
+            },
+            {
+                "ID": "INACTIVE",
+                "Name": "Inactive",
+                "Description": "Inactive and not available."
+            },
+            {
+                "ID": "DELETED",
+                "Name": "Deleted",
+                "Description": "Deleted Removed and no longer available."
+            },
+            {
+                "ID": "ARCHIVED",
+                "Name": "Archived",
+                "Description": "Archived  Archived for future use."
+            },
+            {
+                "ID": "IN_PROGRESS",
+                "Name": "In Progress",
+                "Description": "In Progress or currently being process."
+            },
+            {
+                "ID": "COMPLETE",
+                "Name": "Complete",
+                "Description": "Process has finished or completed."
+            },
+            {
+                "ID": "PROCESSED",
+                "Name": "Processed",
+                "Description": "Record has been processed and is complete."
+            },
+            {
+                "ID": "INVALID",
+                "Name": "Invalid",
+                "Description": "Record is invalid and no longer relevant."
+            },
+            {
+                "ID": "PENDING",
+                "Name": "Pending",
+                "Description": "Record is in pending status."
+            },
+            {
+                "ID": "CREATED",
+                "Name": "Created",
+                "Description": "Record has been created."
+            },
+            {
+                "ID": "ERROR",
+                "Name": "Error",
+                "Description": "An error occurred for the record."
+            },
+            {
+                "ID": "DECOMMISSIONED",
+                "Name": "Decommissioned",
+                "Description": "Resource is no longer in use."
+            },
+            {
+                "ID": "WARNING",
+                "Name": "Warning",
+                "Description": "A warning happened in the server"
+            },
+            {
+                "ID": "EXPIRED",
+                "Name": "Expired",
+                "Description": "Resource has passed its expiration date"
+            }
+        ]
 
 ### List Available User Roles [GET /roles]
 
@@ -1046,31 +1018,6 @@ Retrieves User's Role.
             "Code": "UNAUTHORIZED_ACCESS"
         }
 
-<!--### Update Avatar [POST /users/avatar]-->
-
-<!--Allows for creating a user avatar. The contents of the image-->
-<!--can be posted directly in the inbound JSON object. The `Buffer`-->
-<!--property in the payload should be a base64 encoded buffer string-->
-<!--as GIF, JPEG or PNG. Alternatively pass in the AvatarURI to-->
-<!--reference and external asset for the account.-->
-
-<!--+ Request (application/json)-->
-
-<!--        {-->
-<!--            "Buffer": "..."-->
-<!--        }-->
-
-<!--+ Response 200 (application/json)-->
-
-<!--        {-->
-<!--            "AvatartURI": "https://s3.amazonaws.com/dev-avatar-files/32b0de95-64ab-4563-b48f-976887f4ac0a",-->
-<!--        }-->
-
-<!--+ Response 401 (application/json)-->
-
-<!--        {-->
-<!--            "Error": "UNAUTHORIZED_ACCESS"-->
-<!--        }-->
 
 ### Send Reset Request [PATCH /users/sendreset]
 
@@ -1191,158 +1138,7 @@ The account to be deleted is derived from the User Token.
         {
             "Code": "Restricted Access"
         }
-        
-<!--## Meta [/meta]-->
 
-<!--A general data store for extra app use. Each data store is contained-->
-<!--in a namespace as to segment use. This can eventually be keyed/locked-->
-<!--so only certain applications can access the namespaces.-->
-
-<!--These acts as a generic key-value store. Values pushed with existing-->
-<!--keys that are set will be overwritten. Values are merged into the-->
-<!--existing document.-->
-
-<!--### Update [PATCH /meta/{Namespace}]-->
-
-<!--Updates meta values for devices, users and profiles. Passing a-->
-<!--namespace will relegate the changes to the specific subset.-->
-
-<!--+ Parameters-->
-    + Namespace: all (string) - Namespace identifier for where to store the data.
-
-<!--+ Request (application/json)-->
-
-<!--        {-->
-<!--            "Value1": "foo",-->
-<!--            "Value2": "bar",-->
-<!--            "Value3": "fak"-->
-<!--        }-->
-
-<!--+ Response 401 (application/json)-->
-
-<!--        {-->
-<!--            "Error": "UNAUTHORIZED_ACCESS"-->
-<!--        }-->
-
-<!--+ Response 401 (application/json)-->
-
-<!--        {-->
-<!--          "Code": "META_TOO_LARGE"-->
-<!--        }-->
-
-<!--### Retrieve [GET /meta/{Namespace}{?Fields}]-->
-
-<!--Retrieves data related to a meta namespaces. Passing a querystring-->
-<!--value via the keys property will only return the value requested. This-->
-<!--is done to minimize the payload if the namespace is overburdened with-->
-<!--extra unecessary data.-->
-
-<!--Note that these endpoints may behave differently for Protobuf requests.-->
-<!--Refer to `dfx.proto` for detailed instructions.-->
-
-<!--+ Parameters-->
-<!--    + Namespace (string) - Namespace identifier or "all" for all values.-->
-    + Fields: value_1 (optional) - Comma separated list of meta values to return.
-
-<!--+ Response 200 (application/json)-->
-
-<!--        {-->
-<!--            "Value1": "foo",-->
-<!--            "Value2": "bar",-->
-<!--            "Value3": "fak"-->
-<!--        }-->
-
-<!--+ Response 200 (application/json)-->
-
-<!--        {-->
-<!--            "NamespaceValue": {-->
-<!--                "Value1": "foo",-->
-<!--                "Value2": "bar",-->
-<!--                "Value3": "fak"-->
-<!--            }-->
-<!--        }-->
-
-<!--+ Response 204 (application/json)-->
-
-<!--+ Response 401 (application/json)-->
-
-<!--        {-->
-<!--            "Code": "NAMESPACE_DOESNT_EXIST"-->
-<!--        }-->
-
-<!--### Retrieve By Type [GET /meta/{Type}/{ID}/{Namespace}{?Fields}]-->
-
-<!--Retrieves data related to a meta namespaces. Passing a querystring-->
-<!--value via the keys property will only return the value requested. This-->
-<!--is done to minimize the payload if the namespace is overburdened with-->
-<!--extra unecessary data. This endpoint is only available to organizations.-->
-
-<!--Please refrain from storing nested properties. The current API does-->
-<!--not limit it's use however, due to the structure of `dfx.proto`, only-->
-<!--key-values are supported via that transport.-->
-
-<!--+ Parameters-->
-<!--    + Namespace (string) - Namespace identifier or "all" for all values.-->
-    + Type: users (string) - Target for the meta data as either "user", "device" or "profile".
-    + Fields: value_1 (optional) - Comma separated list of meta values to return.
-<!--    + ID (string) - Only required when effecting user profiles.-->
-
-<!--+ Response 200 (application/json)-->
-
-<!--        {-->
-<!--            "Value1": "foo",-->
-<!--            "Value2": "bar",-->
-<!--            "Value3": "fak"-->
-<!--        }-->
-
-<!--+ Response 200 (application/json)-->
-
-<!--        {-->
-<!--            "NamespaceValue": {-->
-<!--                "Value1": "foo",-->
-<!--                "Value2": "bar",-->
-<!--                "Value3": "fak"-->
-<!--            }-->
-<!--        }-->
-
-<!--+ Response 204 (application/json)-->
-
-<!-- + Response 401 (application/json) -->
-
-<!--        {-->
-<!--            "Code": "NAMESPACE_DOESNT_EXIST"-->
-<!--        }-->
-
-<!--### Update By Type [PATCH /meta/{Type}/{ID}/{Namespace}]-->
-
-<!--Updates meta values for devices, users and profiles. Passing a-->
-<!--namespace will relegate the changes to the specific subset.-->
-<!--This endpoint is only available to organizations.-->
-
-<!--+ Parameters-->
-    + Namespace: all (string) - Namespace identifier for where to store the data.
-    + Type: users (string) - Target for the meta data as either "user", "device" or "profile".
-<!--    + ID (string) - Required to target the specific ID type.-->
-
-<!--+ Request (application/json)-->
-
-<!--        {-->
-<!--            "Value1": "foo",-->
-<!--            "Value2": "bar",-->
-<!--            "Value3": "fak"-->
-<!--        }-->
-
-<!--+ Response 401 (application/json)-->
-
-<!--        {-->
-<!--            "Error": "UNAUTHORIZED_ACCESS"-->
-<!--        }-->
-
-<!--    + Response 401 (application/json)-->
-
-<!--        {-->
-<!--          "Code": "META_TOO_LARGE"-->
-<!--        }-->
 
 ### Delete [DELETE /users/:ID/measurements]
 
@@ -3091,32 +2887,6 @@ Deletes a device from the dataset.
         }
 
 
-<!--## Reports [/reports]-->
-
-<!--Reports can be generated to provide an overview of the collected data.-->
-<!--In a report each Signal's result is represented by a single averaged value,-->
-<!--i.e. we return a single number for Heart Rate, Stress Rate, etc. per measurement.-->
-<!--At the moment only reports for StudyID are available.-->
-
-<!--### Create [POST /reports/studies]-->
-
-<!--Generate a new Study Report-->
-
-<!--+ Request (application/json)-->
-<!--    + Headers-->
- <!--       Authorization: Bearer <api token>-->
-        
-<!--    + Body-->
-
-<!--        {-->
-<!--            "StudyID": "uuid",-->
-<!--            "StartDate": "measurements start date (optional)",-->
-<!--            "EndDate": "measurements end date (optional)"-->
-<!--        }-->
-
-<!--+ Response 200 (application/json)-->
-
-
 ### Delete device measurement [DELETE /devices/:ID/measurements]
 
 Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific device for its own organization.
@@ -3151,15 +2921,11 @@ We want to extend the EP to use deviceID (instead of :ID) in the device token to
 ## Licenses [/licenses]
 
 These endpoints allow to list Licenses available to your User / Organization.
-<!--and to generate license assignments for Anura devices. An assignment will include a `Url` -->
-<!--that can be converted to a scannable QR code.-->
-<!--Scanning the QR code enables your Anura device to send measurements to the-->
-<!--specified Study under your Organization.-->
+
 
 ### Get Organization Licenses [GET /licenses/organization]
 
-List licenses available to your User / Organization. 
-<!--An `ID` from this list has to be supplied as `LicenseID` when generating an Anura license assignment.-->
+List licenses available to your User / Organization.
 
 + Request (application/json)
     + Headers
@@ -3190,152 +2956,3 @@ List licenses available to your User / Organization.
             "DeviceRegistrations": 114
         }
     ]
-
-
-<!--### Create Anura License [POST /licenses/studies]-->
-
-<!--Create new Anura License assignment.-->
-
-<!--+ Request (application/json)-->
-<!--    + Headers-->
-<!--        Authorization: Bearer <api token>-->
-        
-<!--    + Body-->
-
-<!--        {-->
-<!--            "LicenseID": "uuid",-->
-<!--            "StudyID": "uuid",-->
-<!--            "LoginType": "EMAIL || PHONE",-->
-<!--            "Name": "String [3-60 chars]"-->
-<!--        }-->
-
-<!--+ Response 200 (application/json)-->
-
-
-<!--### Update Anura License [PATCH /licenses/studies/{ID}]-->
-
-<!--Update Anura License assignment.-->
-
-<!--+ Parameters-->
-<!--    + ID: Anura License assignment UUID.-->
-
-<!--+ Request (application/json)-->
-<!--    + Headers-->
-        <!--Authorization: Bearer <api token>-->
-        
-<!--    + Body-->
-
-<!--        {-->
-<!--            "LicenseID": "uuid",-->
-<!--            "StudyID": "uuid",-->
-<!--            "LoginType": "EMAIL | PHONE",-->
-<!--            "Name": "String [3-60 chars]"-->
-<!--        }-->
-
-<!--+ Response 200 (application/json)-->
-
-
-<!--### List Anura Licenses [GET /licenses/studies]-->
-
-<!--List all Anura Licenses assignments.-->
-
-<!--+ Request (application/json)-->
-<!--    + Headers-->
-<!--        Authorization: Bearer <api token>-->
-
-<!--+ Response 200 (application/json)-->
-
-<!--    [-->
-<!--        {-->
-<!--            "ID": "e39df2e1-e719-4db4-9fb3-24cec6a4e29c",-->
-<!--            "Name": "new-test",-->
-<!--            "Url": "https://anura.app.link/BTmwvaystd",-->
-<!--            "LoginType": "EMAIL",-->
-<!--            "Created": "2019-04-12T16:52:04.573Z",-->
-<!--            "Updated": "2019-04-12T16:52:04.573Z",-->
-<!--            "StudyID": "e2e3c2aa-e428-45a3-b28b-27f053a58672",-->
-<!--            "LicenseID": "cf102c42-f2ba-4e87-a954-e449de6f1rtr",-->
-<!--            "Expiration": null,-->
-<!--            "TotalCount": 2-->
-<!--        },-->
-<!--        {-->
-<!--            "ID": "4a056435-9a87-41a2-8344-0557676dfd1b",-->
-<!--            "Name": "TEST",-->
-<!--            "Url": "https://anura.app.link/IfOmnVUere",-->
-<!--            "LoginType": "EMAIL",-->
-<!--            "Created": "2019-03-26T14:38:38.974Z",-->
-<!--            "Updated": "2019-03-26T14:38:38.974Z",-->
-<!--            "StudyID": "5c1d56c2-52f4-47b7-970f-39de45190tet",-->
-<!--            "LicenseID": "cf102c42-f2ba-4e87-a954-e449de6f1rtg",-->
-<!--            "Expiration": null-->
-<!--        }-->
-<!--    ]-->
-
-
-<!--### Retrieve Anura License [GET /licenses/studies/{ID}]-->
-
-<!--Get Anura License assignment by ID.-->
-
-<!--+ Parameters-->
-<!--    + ID: Anura License assignment UUID.-->
-    
-<!--+ Request (application/json)-->
-<!--    + Headers-->
- <!--       Authorization: Bearer <api token>-->
-
-<!--+ Response 200 (application/json)-->
-
-<!--        {-->
-<!--            "ID": "4a056435-9a87-41a2-8344-0557676dfd1b",-->
-<!--            "Name": "TEST",-->
-<!--            "Url": "https://anura.app.link/IfOmnVUere",-->
-<!--            "LoginType": "EMAIL",-->
-<!--            "Created": "2019-03-26T14:38:38.974Z",-->
-<!--            "Updated": "2019-03-26T14:38:38.974Z",-->
-<!--            "StudyID": "5c1d56c2-52f4-47b7-970f-39de45190tet",-->
-<!--            "LicenseID": "cf102c42-f2ba-4e87-a954-e449de6f1rtg",-->
-<!--            "Expiration": null-->
-<!--        }-->
-
-
-<!--### Delete Anura License [DELETE /licenses/studies/{ID}]-->
-
-<!--Delete Anura License assignment by ID.-->
-
-<!--+ Parameters-->
-<!--    + ID: Anura License assignment UUID.-->
-
-<!--+ Request (application/json)-->
-<!--    + Headers-->
-<!--        Authorization: Bearer <api token>-->
-
-<!--+ Response 200 (application/json)-->
-
-
-
-<!--## Utilization [/utilization]-->
-
-<!--This endpoint provides information about your Organization's usage of the DeepAffex services.-->
-<!--Summary of the amount of stored data (in Bytes) and the total number of created measurements are available.-->
-<!--Total and Daily breakdowns of utilization are supported.-->
-
-<!--### Get Total Utilization [GET /utilization{?StartDate,EndDate}]-->
-
-<!--Get storage utilization info for your Organization.-->
-
-<!--+ Parameters-->
-    + StartDate: 2018/10/22 (date, optional) - start date filter
-    + EndDate: 2018/11/22 (date, optional) - end date filter
-
-<!--+ Response 200 (application/json)-->
-
-
-<!--### Get Daily Utilization [GET /utilization/daily{?StartDate,EndDate}]-->
-
-<!--Get daily utilization breakdown.-->
-
-<!--+ Parameters-->
-    + StartDate: 2018/10/22 (date) - start date filter
-    + EndDate: 2018/11/22 (date) - end date filter
-
-<!--+ Response 200 (application/json)-->
