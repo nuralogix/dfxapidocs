@@ -324,11 +324,13 @@ available in the mapping as they may be outlined only for internal use.
 |Users|216|GET|<a href='/#reference/0/users/request-phone-login-code'>`requestLoginCode`|/users/auth/code/:OrgKey/:PhoneNumber|
 |Users|217|POST|<a href='/#reference/0/users/login-with-phone-code'>`loginWithCode`</a>|/users/auth/code|
 |Users|219|DELETE|<a href='/#reference/0/users/delete'>`delete measurement`</a>|/users/:ID/measurements|
-|Users|220|POST|<a href='/#reference/0/users/change-password'>`Change Password`</a>|/users/changepassword|
-|Users|221|POST|<a href='/#reference/0/users/create-two-factor-authentication-secret'>`Create 2FA secret logged in user`</a>|/users/mfa/secret|
-|Users|222|POST|<a href='/#reference/0/users/enable-two-factor-authentication-for-logged-in-user'>`Enable 2FA for logged in user`</a>|/users/mfa|
-|Users|223|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-logged-in-user'>`Disable 2FA for logged in user`</a>|/users/mfa|
-|Users|224|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-specified-user'>`Disable 2FA for specified user`</a>|/users/:ID/mfa|
+|Users|220|POST|<a href='/#reference/0/users/change-password'>Change password</a>|/users/changepassword|
+|Users|221|POST|<a href='/#reference/0/users/create-two-factor-authentication-secret'>Create 2FA secret logged in user</a>|/users/mfa/secret|
+|Users|222|POST|<a href='/#reference/0/users/enable-two-factor-authentication-for-logged-in-user'>Enable 2FA for logged in user</a>|/users/mfa|
+|Users|223|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-logged-in-user'>Disable 2FA for logged in user</a>|/users/mfa|
+|Users|224|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-specified-user'>Disable 2FA for specified user</a>|/users/:ID/mfa|
+|Users|225|DELETE|<a href='/#reference/0/users/renew-token'>Renew token which expired due to inactivity</a>|/users/auth/renew|
+|Users|226|DELETE|<a href='/#reference/0/users/logout'>Logout user from all sessions at once</a>|/users/auth|
 |Profiles|400|POST|<a href='/#reference/0/profiles/create-profile'>`create`</a>|/users/profiles|
 |Profiles|401|GET|<a href='/#reference/0/profiles/retrieve-profile'>`retrieve`</a>|/users/profiles/:ID|
 |Profiles|402|GET|<a href='/#reference/0/profiles/list-profiles'>`list`</a>|/users/profiles|
@@ -759,6 +761,14 @@ API call to the server.
             "Message": "User account is configured to use multi-factor authentication." 
         }
 
++ Response 429 (application/json)
+
+        {
+            "Code": "TOO_MANY_LOGIN_ATTEMPTS", 
+            "Message": "" 
+        }
+
+
 ### Request Phone Login Code [GET /users/auth/code/{OrgKey}/{PhoneNumber}]
 
 Request a 6-digit login code for a User account created with a Phone Number. Use this code in `loginWithCode` endpoint to obtain `UserToken`.
@@ -1170,6 +1180,68 @@ This End Point allow user to change password for already verified user
             "NewPassword": "myNewPassword"
         }
 
++ Response 200 (application/json)
+        {
+            "success": true
+        }
+
++ Response 400 (application/json)
+
+        {
+            "Code": "COMMON_PASSWORD", 
+            "Message": "" 
+        }
+
+
++ Response 400 (application/json)
+
+        {
+            "Code": "INSECURE_PASSWORD", 
+            "Message": "" 
+        }
+        
+### Renew token [POST /users/auth/renew]
+
+Renews token previously expired due to inactivity. This method is useful for client applications which 'upgrade' device tokens to user tokens and do not want to request user to login too often.
+However, since some sort of validation must happen, the endpoint requires a license key that was used to create the device part of the token.
+The request succeeds only if:
+- Token has expired due to inactivity
+- Token is or was created from a device token
+- Privided license key belongs to the license used to create underlying device token
+- The license key belongs to a license that hasn't expired yet
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
++ Request (application/json)
+
+        {
+            "Key": "licensekey",
+        }
+
++ Response 200 (application/json)
+        {
+            "success": true
+        }
+
+
+
++ Response 400 (application/json)
+
+        {
+            "Code": "VALIDATION_ERROR", 
+            "Message": "Provided license Key is either invalid, expired or not used to register given device" 
+        }
+
+### Logout [DELETE /users/auth]
+
+Logs user out from all its sessions at once
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+        
 + Response 200 (application/json)
         {
             "success": true
@@ -1713,6 +1785,8 @@ Retrieves information related to the current organization account.
         "PasswordRequireSpecial": false,
         "PasswordRotateDays": 0,
         "RequireUniquePasswordsCount": 0,
+        "SessionMaxDurationSeconds": 0,
+        "SessionIdleDurationSeconds": 0,
         "OrgAddresses": [],
         "LivenessConfig": {
             "VisageLiveness": false,
@@ -1746,12 +1820,20 @@ allows setting organization password policy:
 | PasswordRequireSpecial | Whether or not a password should include sppecial characters: punctuation, #, %, etc. |
 | PasswordRotateDays | Number of days after a password was set till user is forced to change the password | 
 | RequireUniquePasswordsCount | Number of unique passwords user must set before older passwords can be reused |
+| LimitLoginAttemptsCountPerWindow | Maximum number of unsuccessful login attempts in a row within time window before user account becomes temporarily locked. Successful login resets the counter. |
+| LimitLoginAttemptsWindowDurationSeconds | Time window for LoginAttemptsCountPerWindow property |
+| SessionMaxDurationSeconds | Maximum duration of user session before user gets automatically logged out |
+| SessionIdleDurationSeconds | Maximum duration of inactivity before user gets automatically logged out |
 
 *Note*. `PasswordRequireCharacterClasses` works independently from `PasswordRequireUppercase`, `PasswordRequireLowercase`, `PasswordRequireDigits` and `PasswordRequireSpecial`.
 `PasswordRequireCharacterClasses` requires just the number of character types without focusing at the character types themselves.
 E.g. if 2 character classes are required, passwords made of lower and upper case characters (`aaAA`), or digits and special (`00##`) will be accepted.
 
 Combining `PasswordRequireCharacterClasses` with `PasswordRequire*` properties allows setting more complex rules. E.g. requiring 3 character classes along with `PasswordRequireSpecial` forces passwords to include at least three character types, one of which must be _special_. 
+
+`LimitLoginAttemptsCountPerWindow` and `LimitLoginAttemptsWindowDurationSeconds` effectively allows setting login rate limiting. E.g. values 10 and 3600 respectively would set the limit on number of unsuccessful login attempts to 10 within one hour. Exceeding this limit would result HTTP 429 response.
+
+`SessionMaxDurationSeconds` and `SessionIdleDurationSeconds` control the expiry of JWT tokens.
 
 + Request (application/json)
     + Headers
@@ -1773,6 +1855,10 @@ Combining `PasswordRequireCharacterClasses` with `PasswordRequire*` properties a
             "PasswordRequireLowercase": false,
             "PasswordRequireDigits": false,
             "PasswordRequireSpecial": true,
+            "PLimitLoginAttemptsCountPerWindow": 0,
+            "PLimitLoginAttemptsWindowSeconds": 0,
+            "SessionMaxDurationSeconds": 0,
+            "SessionIdleDurationSeconds": 0,
             "PasswordRotateDays": 90,
             "RequireUniquePasswordsCount": 5,
         }
@@ -1789,7 +1875,6 @@ Combining `PasswordRequireCharacterClasses` with `PasswordRequire*` properties a
             "Code": "RESTRICTED_ACCESS", 
             "Message": "" 
         }
-
 
 
 ### Users [GET /organizations/users{?Limit,Offset,StartDate,EndDate,Username,RoleID,Gender,StatusID}]
@@ -2327,6 +2412,13 @@ Login and obtain User Token.
         {
             "Code": "INVALID_CREDENTIALS",
             "Message": "Invalid Credentials" 
+        }
+
++ Response 429 (application/json)
+
+        {
+            "Code": "TOO_MANY_LOGIN_ATTEMPTS", 
+            "Message": "" 
         }
 
 ### Delete [DELETE /organizations/:ID/measurements]
