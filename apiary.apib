@@ -1990,12 +1990,21 @@ endpoint is accessible publically to all consuming clients. License
 keys are mapped against an organization. Upon submitting a registration
 key and relevant information associated with the device to be registered,
 DFX API will respond with a referencing DeviceID and a token for future
-device-specific API requests. The resulting token is a `Device Token`.<br>
-<b>Note:</b> make sure to store the obtained token locally as most Licenses (e.g. Trial) allow for
-a limited number of registered Devices. To unregister a Device and gain one License use back, call <a href='/#reference/0/organizations/unregister-license'>Unregister License</a>
-endpoint with your `Device Token`.
+device-specific API requests. The resulting token is a _Device Token_.
 
-If you are passing token subject in request than in order to use this token client should pass    --header 'Referer: http://deepafex.ai' \ in request
+The longevity and allowed origins of the token can be controlled by `TokenExpiresIn` and `TokenSubject` optional parameters.
+`TokenExpiresIn` specifies token validity duration in seconds. Effective duration will be
+calculated as a minimum of `TokenExpiresIn`, license `Expiration` date and organization's `SessionMaxDurationseconds`.
+In other words, this parameter can only be used to further reduce token's lifespan.
+
+`TokenSubject` locks the host which is allowed to use the token for its communication with DeepAffex. 
+When set, the server will compare the token value with HTTP request's `Referer` header
+and reject the request if those don't match.
+
+**Note:** make sure to store the obtained token locally as most Licenses (e.g. Trial) allow for
+a limited number of registered Devices.
+To unregister a Device and gain one License use back, call <a href='/#reference/0/organizations/unregister-license'>Unregister License</a>
+endpoint with your `Device Token`.
 
 + Request (application/json)
 
@@ -2005,8 +2014,8 @@ If you are passing token subject in request than in order to use this token clie
             "Name": "DFX Desktop",
             "Identifier": "DFXCLIENT",
             "Version": "1.0.0",
-            "TokenExpiresIn": 20, <!-- optional value in seconds    [-->
-            "TokenSubject": "http://deepafex.ai" <!-- optional header   [-->
+            "TokenExpiresIn": 20,
+            "TokenSubject": "https://deepafex.ai"
         }
 
 + Response 200 (application/json)
