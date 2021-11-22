@@ -1499,8 +1499,7 @@ should be referenced for adding data chunks and retreiving results.
 
 Adds collected data to a specific measurement. Upon submitting a chunk of data, the
 API will return a `MeasurementDataID` value representing the received chunk. Data
-must be sent to the server in chronological order, counted via the `ChunkOrder` property.
-`ChunkOrder` must start at 0 and increment by 1 with each new chunk submission. If a chunk it sent out of order, the server will return an error.
+must be sent to the server in the order produced by the DFX SDK. If a chunk it sent out of order, the server will return an error.
 Please ensure that new chunks are only sent once the server responds back with a `MeasurementDataID`.
 
 Submitting measurements has three stages: a) starting, b) measurement body, c) closing
@@ -1521,15 +1520,11 @@ a measurement. Each of these phases have the same payload structure however a di
 
 
 `Payload` is a binary data that can currently only be obtained by using our SDK.<br>
-`Meta` is supplied by our SDK as well and should be passed to the API as is.
 
 If you are using REST or Websockets transports, with JSON data payloads 
 (i.e. without protobuffs) the `Payload` (binary content) field must be **base64-encoded**.
 If you are using Websockets with Protobuf transport, the binary payload is just a regular byte array.
 (`Buffer` object in Javascript, `Bytes` object in Python, `byte[]` in C/C++)
-
-`StartTime` and `EndTime` parameters should be in seconds and `StartTime` of a chunk cannot be smaller than `EndTime` of the previously sent chunk in a given Measurement.
-The difference between `StartTime` and `EndTime` cannot exceed 100 seconds and cannot be smaller than 5 seconds.
 
 **Note:**<br/>
 This endpoint is a subject to request throttling, users are encouraged not to submit more data than can be obtained in real time. I.e. do not send more
@@ -1540,6 +1535,7 @@ than 2 minutes of chunk durations over the course of 2 minutes of real time.
 - "MEASUREMENT_CLOSED": Requested Measurement is already finished. You need to create a new Measurement.
 - "MISALIGNED_CHUNK": Chunk Order was mismatched. I.e. ChunkOrder 2 was sent before ChunkOrder 1.
 - "INVALID_MEASUREMENT": Requested Measurement ID was not found.
+- "UNPACKER_RPC_ERROR": Payload validation has been failed. Reason(s) will be provided in error message.
 
 + Parameters
     + MeasurementID: Measurement UUID to add data to.
@@ -1551,11 +1547,7 @@ than 2 minutes of chunk durations over the course of 2 minutes of real time.
     + Body
 
         {
-            "ChunkOrder": 0,
             "Action": "FIRST::PROCESS",
-            "StartTime": 0,
-            "EndTime": 30,
-            "Meta": "comes from SDK",
             "Payload": "binary payload, comes from SDK"
         }
 
@@ -1564,6 +1556,12 @@ than 2 minutes of chunk durations over the course of 2 minutes of real time.
         {
             "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d",
             "ChunkOrder": 0
+        }
+
++ Response 400 (application/json)
+
+        {
+            "Code": "UNPACKER_RPC_ERROR"
         }
 
 + Response 404 (application/json)
