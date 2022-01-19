@@ -1657,7 +1657,11 @@ has a status representing its cycle in the system:
 
 Returns the results of a measurement request specified by the UUID
 in the endpoint request. This payload will change according to the
-different requested signals.
+different requested signals. 
+
+If `ReduceResults` flag is set to `false`, vector version of 
+results for each signal will be return. If the flag set to `true` or has not been passed, median 
+results of each signal will be returned.
 
 + Parameters
     + ID (string) - Requested measurement UUID.
@@ -1665,6 +1669,10 @@ different requested signals.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
+    + Body
+        {
+            "ReduceResults": {true/false}
+        }
 
 + Response 200 (application/json)
 
