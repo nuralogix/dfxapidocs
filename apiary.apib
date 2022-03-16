@@ -387,6 +387,10 @@ available in the mapping as they may be outlined only for internal use.
 |Devices|907|DELETE|<a href='/#reference/0/devices/delete-device-measurement'>`Delete device Measurement`</a>|/devices/:ID/measurements|
 |Devices|908|GET|<a href='/#reference/0/devices/retrieve-license-id'>`Retrieve license ID`</a>|/devices/license|
 |Licenses|1406|GET|<a href='/#reference/0/licenses/retrieve-anura-license'>`listOrgLicenses`|/licenses/organization|
+|Auths|2300|PATCH|<a href='/#reference/0/auths/users/reset'>`Request to send reset password link to user's email`|/auths/users/reset|
+|Auths|2301|PATCH|<a href='/#reference/0/auths/users'>`Request to reset password`|/auths/users|
+|Auths|2302|PATCH|<a href='/#reference/0/auths/users/reset/mobile'>`Request to send reset password link to user's phone`|/auths/users/reset/mobile|
+|Auths|2304|POST|<a href='/#reference/0/auths/renew'>`Renew access and refresh token pair`|/auths/renew|
 
 # 4. Tokens
 
@@ -1031,6 +1035,8 @@ Retrieves User's Role.
 
 ### Send Reset Request [PATCH /users/sendreset]
 
+***Deprecated*** please use <a href='/#reference/0/auths/users/reset'> Auths send reset endpoint</a>
+
 Dispatches a password reset request email to the user which
 contains a reset password token. Upon retrieving this value the
 token is used against the Reset Password endpoint.
@@ -1054,6 +1060,8 @@ token is used against the Reset Password endpoint.
         }
 
 ### Reset Password [PATCH /users/reset]
+
+***Deprecated*** please use <a href='/#reference/0/auths/users'> Auths reset password endpoint</a>
 
 Performs a password reset request against the user account
 if supplied with a token and new password.
@@ -3064,3 +3072,131 @@ List licenses available to your User / Organization.
             "DeviceRegistrations": 114
         }
     ]
+
+## Auths [/auths]
+
+These endpoints provide user/device authentication.
+
+
+### Request reset password link to user's email [PATCH /auths/users/reset]
+
+Request to send password reset link to user's email.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "Email": "user@email.com",
+            "Identifier": "organization_identifier"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "success": true
+    }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "USER_PASSWORD_RESET_ERROR", 
+            "Message": "No such user."
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "USER_RESET_ERROR", 
+            "Message": "Could not reset user password"
+        }
+
+
+### Reset password [PATCH /auths/users]
+
+Reset password.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "ResetToken": "reset_token",
+            "Password": "password12345"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "success": true
+    }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "INVALID_RESET_TOKEN", 
+            "Message": "Invalid reset token provided. please try resetting password again"
+        }
+
+### Request reset password link to user's phone number [PATCH /auths/users/reset/mobile]
+
+Request to send password reset link to user's phone number.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "PhoneNumber": "phone_number",
+            "Email": "user_email"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "success": true
+    }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "USER_NOT_FOUND", 
+            "Message": "User not found."
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "USER_RESET_ERROR", 
+            "Message": "Could not reset user password"
+        }
+
+### Renew [POST /auths/renew]
+
+Renew user/device access and refresh token. When register a license or login with user's credentials, a pair 
+of Token and RefreshToken is sent to a client. The client needs to send the matching pair to exchange it
+with a new pair. The old pair will not be valid after calling this endpoint. RefreshToken is one-time use. 
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "Token": "access_token",
+            "Refresh": "refresh_token"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "Token": "new_access_token",
+        "RefreshToken": "new_refresh_token"
+    }
