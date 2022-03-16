@@ -390,6 +390,7 @@ available in the mapping as they may be outlined only for internal use.
 |Auths|2300|PATCH|<a href='/#reference/0/auths/users/reset'>`Request to send reset password link to user's email`|/auths/users/reset|
 |Auths|2301|PATCH|<a href='/#reference/0/auths/users'>`Request to reset password`|/auths/users|
 |Auths|2302|PATCH|<a href='/#reference/0/auths/users/reset/mobile'>`Request to send reset password link to user's phone`|/auths/users/reset/mobile|
+|Auths|2303|POST|<a href='/#reference/0/auths/users/code/'>`Request login code`|/auths/renew|
 |Auths|2304|POST|<a href='/#reference/0/auths/renew'>`Renew access and refresh token pair`|/auths/renew|
 
 # 4. Tokens
@@ -773,7 +774,9 @@ API call to the server.
         }
 
 
-### Request Phone Login Code [GET /users/auth/code/{OrgKey}/{PhoneNumber}]
+### Request Phone Login Code [GET /users/auth/code/{OrgKey}/{PhoneNumber} [Deprecated]]
+
+***Deprecated***: please use <a href='/#reference/0/auths/users/code/'> Auths request login code</a>
 
 Request a 6-digit login code for a User account created with a Phone Number. Use this code in `loginWithCode` endpoint to obtain `UserToken`.
 
@@ -1033,9 +1036,9 @@ Retrieves User's Role.
         }
 
 
-### Send Reset Request [PATCH /users/sendreset]
+### Send Reset Request [PATCH /users/sendreset [Deprecated]]
 
-***Deprecated*** please use <a href='/#reference/0/auths/users/reset'> Auths send reset endpoint</a>
+***Deprecated***: please use <a href='/#reference/0/auths/users/reset'> Auths send reset endpoint</a>
 
 Dispatches a password reset request email to the user which
 contains a reset password token. Upon retrieving this value the
@@ -1059,9 +1062,9 @@ token is used against the Reset Password endpoint.
             "Error": "USER_NOT_FOUND"
         }
 
-### Reset Password [PATCH /users/reset]
+### Reset Password [PATCH /users/reset [Deprecated]]
 
-***Deprecated*** please use <a href='/#reference/0/auths/users'> Auths reset password endpoint</a>
+***Deprecated***: please use <a href='/#reference/0/auths/users'> Auths reset password endpoint</a>
 
 Performs a password reset request against the user account
 if supplied with a token and new password.
@@ -3177,9 +3180,44 @@ Request to send password reset link to user's phone number.
             "Message": "Could not reset user password"
         }
 
+### Request login code [PATCH /auths/users/code]
+
+Request to send login code.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "PhoneNumber": "phone_number",
+            "Identifier": "organization_identifier"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "success": true
+    }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "LOGIN_METHOD", 
+            "Message": "Invalid login method! Try to login with an Email."
+        }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_USER", 
+            "Message": "User not found"
+        }
+
 ### Renew [POST /auths/renew]
 
-Renew user/device access and refresh token. When register a license or login with user's credentials, a pair 
+Renew user/device access and refresh token. When you register a license or login with user's credentials, a pair 
 of Token and RefreshToken is sent to a client. The client needs to send the matching pair to exchange it
 with a new pair. The old pair will not be valid after calling this endpoint. RefreshToken is one-time use. 
 
