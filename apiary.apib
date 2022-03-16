@@ -2034,6 +2034,13 @@ endpoint with your `Device Token`.
             "Message": "License Key LICENSE_KEY not found" 
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "LICENSE_EXPIRED", 
+            "Message": "License has been expired" 
+        }
+
 ### Unregister License [DELETE /organizations/licenses]
 
 Send your `Device Token` as the Authorization header to decommission a registered device. Note that this does not delete the Device.
