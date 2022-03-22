@@ -331,7 +331,7 @@ available in the mapping as they may be outlined only for internal use.
 |Users|222|POST|<a href='/#reference/0/users/enable-two-factor-authentication-for-logged-in-user'>Enable 2FA for logged in user</a>|/users/mfa|
 |Users|223|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-logged-in-user'>Disable 2FA for logged in user</a>|/users/mfa|
 |Users|224|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-specified-user'>Disable 2FA for specified user</a>|/users/:ID/mfa|
-|Users|225|DELETE|<a href='/#reference/0/users/renew-token'>Renew token which expired due to inactivity</a>|/users/auth/renew|
+<!-- |Users|225|DELETE|<a href='/#reference/0/users/renew-token'>Renew token which expired due to inactivity</a>|/users/auth/renew| -->
 |Users|226|DELETE|<a href='/#reference/0/users/logout'>Logout user from all sessions at once</a>|/users/auth|
 |Profiles|400|POST|<a href='/#reference/0/profiles/create-profile'>`create`</a>|/users/profiles|
 |Profiles|401|GET|<a href='/#reference/0/profiles/retrieve-profile'>`retrieve`</a>|/users/profiles/:ID|
@@ -1214,39 +1214,39 @@ This End Point allow user to change password for already verified user
             "Message": "" 
         }
         
-### Renew token [POST /users/auth/renew]
+<!-- ### Renew token [POST /users/auth/renew] -->
 
-Renews token previously expired due to inactivity. This method is useful for client applications which 'upgrade' device tokens to user tokens and do not want to request user to login too often.
-However, since some sort of validation must happen, the endpoint requires a license key that was used to create the device part of the token.
-The request succeeds only if:
-- Token has expired due to inactivity
-- Token is or was created from a device token
-- Privided license key belongs to the license used to create underlying device token
-- The license key belongs to a license that hasn't expired yet
+<!-- Renews token previously expired due to inactivity. This method is useful for client applications which 'upgrade' device tokens to user tokens and do not want to request user to login too often. -->
+<!-- However, since some sort of validation must happen, the endpoint requires a license key that was used to create the device part of the token. -->
+<!-- The request succeeds only if: -->
+<!-- - Token has expired due to inactivity -->
+<!-- - Token is or was created from a device token -->
+<!-- - Privided license key belongs to the license used to create underlying device token -->
+<!-- - The license key belongs to a license that hasn't expired yet -->
 
-+ Request (application/json)
-    + Headers
-        Authorization: Bearer <api token>
-        
-+ Request (application/json)
+<!-- + Request (application/json) -->
+    <!-- + Headers -->
+        <!-- Authorization: Bearer <api token> -->
 
-        {
-            "Key": "licensekey",
-        }
+<!-- + Request (application/json) -->
 
-+ Response 200 (application/json)
-        {
-            "success": true
-        }
+        <!-- { -->
+            <!-- "Key": "licensekey", -->
+        <!-- } -->
+
+<!-- + Response 200 (application/json) -->
+        <!-- { -->
+            <!-- "success": true -->
+        <!-- } -->
 
 
 
-+ Response 400 (application/json)
+<!-- + Response 400 (application/json) -->
 
-        {
-            "Code": "VALIDATION_ERROR", 
-            "Message": "Provided license Key is either invalid, expired or not used to register given device" 
-        }
+        <!-- { -->
+            <!-- "Code": "VALIDATION_ERROR", -->
+            <!-- "Message": "Provided license Key is either invalid, expired or not used to register given device" -->
+        <!-- } -->
 
 ### Logout [DELETE /users/auth]
 
