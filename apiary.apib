@@ -283,18 +283,20 @@ Organizations are provided with License Keys that can be exchanged for API token
 
 ## 3.5.1 More details and best practices
 
-* Since tokens represent authentication information, please make sure to **store them 
+* Since tokens represent authentication information, please make sure to **store them
 securely** - typically in some form of secure storage.
-* Some License Keys have a limited number of allowed active Devices. If you need to 
-use your License on a different device, make sure to unregister your current device 
+* Some License Keys have a limited number of allowed active Devices. If you need to
+use your License on a different device, make sure to unregister your current device
 first by calling the <a href='/#reference/0/organizations/unregister-license'>Organizations UnregisterLicense</a> endpoint.
-* The response to Organizations RegisterLicense contains a RoleID for the license - 
+* The response to Organizations RegisterLicense contains a RoleID for the license -
 if it is SDK_DEVICE, then obtaining a user token is mandatory.
-* Device tokens may expire. To ensure that a token is valid, you can call the 
-<a href='/#reference/0/general/verify-token'>General VerifyToken</a> endpoint. 
-If the ActiveLicense field in the response is false or if the API returns one of the 
-following errors: `INVALID_TOKEN`, `LICENSE_EXPIRED`, `INACTIVE_LICENSE` or `INACTIVE_DEVICE`, 
+* Tokens may expire. To ensure that a token is valid, you can call the
+<a href='/#reference/0/general/verify-token'>General VerifyToken</a> endpoint.
+If the ActiveLicense field in the response is false or if the API returns one of the
+following errors: `INVALID_TOKEN`, `LICENSE_EXPIRED`, `INACTIVE_LICENSE` or `INACTIVE_DEVICE`,
 then the client must re-register the license.
+* Please use the <a href="/#reference/0/auths/renew">Auths.Renew</a> endpoint
+refresh your token.
 
 <!--**Note:** all endpoints, except for <a href='/#reference/0/organizations/register-license'>Register License</a>, <a href='/#reference/0/organizations/login'>User Login</a>, <a href='/#reference/0/general/mime-types'>Mime Types</a>, <a href='/#reference/0/general/status'>Status</a>, and <a href='/#reference/0/general/status'>Status</a> require authentication.-->
 
@@ -742,8 +744,8 @@ API call to the server.
 + Response 200 (application/json)
 
         {
-            "Token": "YOUR_API_TOKEN",
-            "RefreshToken": "YOUR_API_REFRESH_TOKEN"
+            "Token": "USER_TOKEN",
+            "RefreshToken": "REFRESH_TOKEN"
         }
 
 + Response 401 (application/json)
@@ -2034,8 +2036,8 @@ endpoint with your `Device Token`.
 
         {
             "DeviceID": "876ff630-84f8-45d8-b30e-6ebeb42c0d85",
-            "Token": "YOUR_API_TOKEN",
-            "RefreshToken": "YOUR_API_REFRESH_TOKEN",
+            "Token": "DEVICE_TOKEN",
+            "RefreshToken": "REFRESH_TOKEN",
             "RoleID": "Role associated with your License",
             "UserID": "User account associated with your License"
         }
@@ -3230,13 +3232,13 @@ with a new pair. The old pair will not be valid after calling this endpoint. Ref
     + Body
 
         {
-            "Token": "access_token",
-            "RefreshToken": "refresh_token"
+            "Token": "DEVICE_OR_USER_TOKEN",
+            "RefreshToken": "REFRESH_TOKEN"
         }
 
 + Response 200 (application/json)
 
     {
-        "Token": "new_access_token",
-        "RefreshToken": "new_refresh_token"
+        "Token": "NEW_DEVICE_OR_USER_TOKEN",
+        "RefreshToken": "NEW_REFRESH_TOKEN"
     }
