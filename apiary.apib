@@ -6,7 +6,7 @@ HOST: https://api.deepaffex.ai/
 The DFX API facilitates data communication for both internal app
 and organization integration usage. Endpoints are transacted using RESTful
 patterns in JSON.
-You may use the following documentation as a reference for interfacing with all 
+You may use the following documentation as a reference for interfacing with all
 transport types, although REST is assumed as the primary.
 
 The following sections outline request patterns for each transport type. Note
@@ -22,7 +22,7 @@ simplicity.
 
 # 1. Getting Started
 
-The following instructions will provide an overview of how to get started with DFX API and 
+The following instructions will provide an overview of how to get started with DFX API and
 show how take a Measurement and obtain its results.
 
 Assuming the following prerequisites are met:
@@ -31,26 +31,26 @@ Assuming the following prerequisites are met:
 
 Follow these steps to take a test Measurement:
 
-1. Make a request to <a href='/#reference/0/organizations/register-license'>Register License endpoint.</a> 
-You only need to do this once per active Device. The response will contain a 
-Device Token - save it locally. Check the returned `RoleID` of your License, if it's 
+1. Make a request to <a href='/#reference/0/organizations/register-license'>Register License endpoint.</a>
+You only need to do this once per active Device. The response will contain a
+Device Token - save it locally. Check the returned `RoleID` of your License, if it's
 `SDK_DEVICE`, then Step 3 is mandatory.
-2. For all consecutive API requests send the obtained Token with request headers 
+2. For all consecutive API requests send the obtained Token with request headers
 <a href='/#introduction/3.5.-authentication-headers'>for authentication.</a>
-3. (Optional) <a href='/#reference/0/users/login'>Authenticate as a User.</a> You will 
-receive a User Token back, which will upgrade the Device Token with your account information. 
-This will improve measurement traceability down the road. Replace the Device Token in 
+3. (Optional) <a href='/#reference/0/users/login'>Authenticate as a User.</a> You will
+receive a User Token back, which will upgrade the Device Token with your account information.
+This will improve measurement traceability down the road. Replace the Device Token in
 Step 2 with the newly obtained User Token.
 4. <a href='/#reference/0/measurements/create'>Create new Measurement,</a> save the returned Measurement `ID` locally.
 5. If you would like to receive results for each sent chunk in real time, 
-<a href='/#reference/0/measurements/subscribe-to-results'>subscribe to results</a> 
+<a href='/#reference/0/measurements/subscribe-to-results'>subscribe to results</a>
 using a WebSocket connection.
 6. Start TOI data extraction using the DeepAffex SDK and obtain a Payload.
-7. Once you have collected enough data, <a href='/#reference/0/measurements/add-data'>send a 
+7. Once you have collected enough data, <a href='/#reference/0/measurements/add-data'>send a
 data chunk in.</a>
-8. Continue sending chunks until your measurement is complete. Make sure to mark the last 
+8. Continue sending chunks until your measurement is complete. Make sure to mark the last
 chunk with `LAST::PROCESS` action.
-9. <a href='/#reference/0/measurements/retrieve'>Retrieve measurement results</a> using the 
+9. <a href='/#reference/0/measurements/retrieve'>Retrieve measurement results</a> using the
 saved Measurement `ID`.
 
 # 2. WebSocket Transport
@@ -77,7 +77,7 @@ request/response exchange pattern outlined below.
 ## 2.1 Authenticating
 
 In order to leverage the socket API, you must establish a connection with the
-server, e.g. `wss://api.deepaffex.ai` (please check with Nuralogix for the correct URL for your geography). 
+server, e.g. `wss://api.deepaffex.ai` (please check with Nuralogix for the correct URL for your geography).
 When making the connection a header should be passed that includes:
 
 ```
@@ -149,7 +149,7 @@ facilities while REST support static calls suitable for polling processes.
 # 3. Using API Transports
 
 In order to use WebSockets in a similar manner to REST, all method
-calls are prefixed by the Library (endpoint groups) followed by a 
+calls are prefixed by the Library (endpoint groups) followed by a
 period and the method in the library. For example `PUT /users` is accessible via
 `Users.create`.
 
@@ -268,7 +268,7 @@ expected results will be returned.
         ]
       }
     }
-    
+
 ```
 
 # 3.5. Authentication Headers
@@ -435,8 +435,8 @@ codes include:
 | ERROR   | Offline due to an error |
 | LATENCY   | API is experience latency or a general slowdown |
 
-Also present in the response are `Region` - the location of the API by cluster and 
-`AllowAnonymous` - a boolean, which when `false` means that user login (and thus a user token) 
+Also present in the response are `Region` - the location of the API by cluster and
+`AllowAnonymous` - a boolean, which when `false` means that user login (and thus a user token)
 is *required* for making measurements.
 
 + Response 200 (application/json)
@@ -447,7 +447,7 @@ is *required* for making measurements.
             "Region": "na-east",
             "AllowAnonymous": false,
         }
-        
+
 ### List Available Statuses [GET /statuses]
 
 Retrieves a list of available status codes that can be used throughout the application to update the StatusID field of various resources.
@@ -456,7 +456,7 @@ Retrieves a list of available status codes that can be used throughout the appli
 
     + Headers
         Authorization: "Bearer <api token>"
-        
+
 + Response 200 (application/json)
 
         [
@@ -540,7 +540,7 @@ Retrieves a list of available User Roles.
 
     + Headers
         Authorization: "Bearer <api token>"
-        
+
 + Response 200 (application/json)
 
 [
@@ -620,7 +620,7 @@ Returns a list of system-wide accepted Mime types and their IDs.
                 "Mime": "application/pdf"
             }
         ]
-        
+
 ### Verify Token [GET /auth]
 
 An endpoint that checks validity of your Token and returns its encoded info.
@@ -629,7 +629,7 @@ An endpoint that checks validity of your Token and returns its encoded info.
 
     + Headers
         Authorization: "Bearer <api token>"
-        
+
 + Response 200 (application/json)
 
         {
@@ -643,20 +643,20 @@ An endpoint that checks validity of your Token and returns its encoded info.
             "RoleID": "BASIC_DEVICE",
             "ActiveLicense": "boolean (indicates if token allows to create Measurements)"
         }
-        
+
 + Response 401 (application/json)
 
         {
             "Code": "INVALID_TOKEN",
             "Message": "Token is not recognized"
         }
-        
+
 ### Regions [GET /regions]
 
 An endpoint gives a list of regions available for clusters.
 
 + Request (application/json)
-        
+
 + Response 200 (application/json)
 
     {
@@ -664,7 +664,7 @@ An endpoint gives a list of regions available for clusters.
     "sa-east": "SA East",
     "cn": "CN",
     "eu-central": "EU Central"
-    }    
+    }
 
 ## Users [/users]
 
@@ -678,7 +678,7 @@ User account. The rest of the fields are optional.
 
     + Headers
         Authorization: "Bearer <api token>"
-    
+
     + Body
 
         {
@@ -703,8 +703,8 @@ User account. The rest of the fields are optional.
 
         {
           "Code"    : "VALIDATION",
-          "Errors"  : { 
-            "DateOfBirth": [ "INVALID_RANGE" ] 
+          "Errors"  : {
+            "DateOfBirth": [ "INVALID_RANGE" ]
           }
         }
 
@@ -716,9 +716,9 @@ User account. The rest of the fields are optional.
 + Response 409 (application/json)
 
         {
-            "Code": "USER_ALREADY_EXISTS", 
-            "Message": "User john2@example.com already exists in this Organization." 
-        }        
+            "Code": "USER_ALREADY_EXISTS",
+            "Message": "User john2@example.com already exists in this Organization."
+        }
 
 ### Login [POST /users/auth]
 
@@ -732,7 +732,7 @@ API call to the server.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-            
+
     + Body
 
             {
@@ -752,28 +752,28 @@ API call to the server.
 
         {
             "Code": "INVALID_USER"
-            "Message": "Invalid Credentials" 
+            "Message": "Invalid Credentials"
         }
 
 + Response 401 (application/json)
 
         {
             "Code": "INVALID_PASSWORD"
-            "Message": "Invalid Credentials" 
+            "Message": "Invalid Credentials"
         }
 
 + Response 401 (application/json)
 
         {
             "Code": "MFA_TOKEN_REQUIRED"
-            "Message": "User account is configured to use multi-factor authentication." 
+            "Message": "User account is configured to use multi-factor authentication."
         }
 
 + Response 429 (application/json)
 
         {
-            "Code": "TOO_MANY_LOGIN_ATTEMPTS", 
-            "Message": "" 
+            "Code": "TOO_MANY_LOGIN_ATTEMPTS",
+            "Message": ""
         }
 
 
@@ -823,8 +823,8 @@ Use previously requested 6-digit code to login into a new session and obtain `Us
 + Response 401 (application/json)
 
         {
-            "Code": "UNAUTHORIZED", 
-            "Message": "Submitted parameters did not match our records" 
+            "Code": "UNAUTHORIZED",
+            "Message": "Submitted parameters did not match our records"
         }
 
 ### Retrieve [GET]
@@ -901,7 +901,7 @@ First Name or Last Name will exclusively update those values.
         {
             "Error": "UNAUTHORIZED_ACCESS"
         }
-        
+
 ### Create Two-factor authentication secret [POST /users/mfa/secret]
 
 Creates a base32 secret, url and a QR code (both derived from the secret) that are compatible
@@ -982,7 +982,7 @@ Disables 2FA for user by its ID. This is a privileged operation that requires OR
 
 + Parameters
     + ID: User's ID
-    
+
 + Response 200 (application/json)
 
         {
@@ -1089,27 +1089,27 @@ if supplied with a token and new password.
         {
             "Error": "INVALID_RESET_TOKEN"
         }
-        
+
 ### Send Account Verification Code [GET /users/verificationCode/{ID}/OrgKey]
 
-Sends an account verification code to the user's email address. 
+Sends an account verification code to the user's email address.
 The code is used to verify the account through the account verification endpoint.
 
 + Parameters
     + ID: User's ID
 
 + Response 200 (application/json)
- 
-        { 
-            "success": true, 
-            "Message": "We sent you a link to verify your account!" 
-        } 
+
+        {
+            "success": true,
+            "Message": "We sent you a link to verify your account!"
+        }
 + Response 400 (application/json)
- 
-        { 
-            "Code": "INVALID_USER", 
-            "Message": "User not found" 
-        } 
+
+        {
+            "Code": "INVALID_USER",
+            "Message": "User not found"
+        }
 
 
 ### Verify User Account [POST /users/verify]
@@ -1127,11 +1127,11 @@ Verifies User's email address.
         {
             "success": true
         }
-        
+
 + Response 400 (application/json)
 
         {
-            "Code": "INVALID_VERIFICATION_CODE", 
+            "Code": "INVALID_VERIFICATION_CODE",
             "Message": "Verification code expired or invalid"
         }
 + Response 401 (application/json)
@@ -1170,11 +1170,11 @@ Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific user fo
 
 + Parameters
     + ID (string) - Requested User UUID.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
 + Response 200 (application/json)
 
 ### Change Password [POST /users/changepassword]
@@ -1184,7 +1184,7 @@ This End Point allow user to change password for already verified user
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
 + Request (application/json)
 
         {
@@ -1202,18 +1202,18 @@ This End Point allow user to change password for already verified user
 + Response 400 (application/json)
 
         {
-            "Code": "COMMON_PASSWORD", 
-            "Message": "" 
+            "Code": "COMMON_PASSWORD",
+            "Message": ""
         }
 
 
 + Response 400 (application/json)
 
         {
-            "Code": "INSECURE_PASSWORD", 
-            "Message": "" 
+            "Code": "INSECURE_PASSWORD",
+            "Message": ""
         }
-        
+
 <!-- ### Renew token [POST /users/auth/renew] -->
 
 <!-- Renews token previously expired due to inactivity. This method is useful for client applications which 'upgrade' device tokens to user tokens and do not want to request user to login too often. -->
@@ -1255,7 +1255,7 @@ Logs user out from all its sessions at once
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
 + Response 200 (application/json)
         {
             "success": true
@@ -1275,7 +1275,7 @@ may be used to segment different accounts for measurements.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-    
+
     + Body
 
         {
@@ -1320,8 +1320,8 @@ valid options are: ACTIVE and INACTIVE.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Remove Profile [DELETE /users/profiles/{ID}]
@@ -1341,8 +1341,8 @@ related meta fields associated with the profile.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Retrieve Profile [GET /users/profiles/{ID}]
@@ -1359,11 +1359,11 @@ Retrieves a single user Profile specified by `ID`.
 + Response 200 (application/json)
 
         {
-            "ID": "2384b2-945c",            
+            "ID": "2384b2-945c",
             "Name": "John",
             "Email": "doe@gmail.com",
             "Status": "ACTIVE",
-            "MeasurementCount": 0, 
+            "MeasurementCount": 0,
             "Created": 1512325663,
             "Updated": 1512325663
         }
@@ -1371,8 +1371,8 @@ Retrieves a single user Profile specified by `ID`.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### List Profiles [GET /users/profiles{?UserProfileName,Status,Limit,Offset}]
@@ -1421,8 +1421,8 @@ Lists specific profiles managed under the current user account.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### List Profiles By User [GET /users/{ID}/profiles{?UserProfileName,Status,Limit,Offset}]
@@ -1457,8 +1457,8 @@ Lists specific profiles managed under a single user account specified by the `ID
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ## Measurements [/measurements]
@@ -1474,8 +1474,8 @@ live results are available. The detailed explanation of streaming implementation
 A valid License is required in order to create Measurements and submit data chunks for processing.
 Please make sure to call <a href='/#reference/0/organizations/register-license'>Register License</a> endpoint first to receive a *Device Token* that grants access to these functions.
 Next, in order to have your User information associated with taken Measurements, you can use <a href='/#reference/0/users/login'>User Login</a> endpoint to obtain a *User Token*, which can be used to take Measurements as well.
-<br><br>**Important:** 
-if your License Type is `SDK_DEVICE`, you must login and obtain User Token as this License Type only allows to perform a login operation.  
+<br><br>**Important:**
+if your License Type is `SDK_DEVICE`, you must login and obtain User Token as this License Type only allows to perform a login operation.
 
 ### Create [POST /measurements]
 
@@ -1524,8 +1524,8 @@ a measurement. Each of these phases have the same payload structure however a di
 |Measument Actions | Description                                                          |
 |------------------|----------------------------------------------------------------------|
 | FIRST::PROCESS   | Start a New Measurement (drop any existing), PROCESS Results         |
-| FIRST::IGNORE    | Start a New Measurement (drop any existing), DO NOT PROCCESS Results | 
-|                                                                                         |    
+| FIRST::IGNORE    | Start a New Measurement (drop any existing), DO NOT PROCCESS Results |
+|                                                                                         |
 | CHUNK::PROCESS   | Arbtitrary block of TOI data and PROCESS Results                     |
 | CHUNK::IGNORE    | Arbtitrary block of TOI data and DO NOT PROCCESS Results             |
 |                                                                                         |
@@ -1535,14 +1535,14 @@ a measurement. Each of these phases have the same payload structure however a di
 
 `Payload` is a binary data that can currently only be obtained by using our SDK.<br>
 
-If you are using REST or Websockets transports, with JSON data payloads 
+If you are using REST or Websockets transports, with JSON data payloads
 (i.e. without protobuffs) the `Payload` (binary content) field must be **base64-encoded**.
 If you are using Websockets with Protobuf transport, the binary payload is just a regular byte array.
 (`Buffer` object in Javascript, `Bytes` object in Python, `byte[]` in C/C++)
 
 **Note:**<br/>
 This endpoint is a subject to request throttling, users are encouraged not to submit more data than can be obtained in real time. I.e. do not send more
-than 2 minutes of chunk durations over the course of 2 minutes of real time. 
+than 2 minutes of chunk durations over the course of 2 minutes of real time.
 
 **Response Error Codes Explanation:**
 - "RATE_LIMIT": You have sent too many chunks in a given time period. See the Note above.
@@ -1624,11 +1624,11 @@ has a status representing its cycle in the system:
     + StatusID (string, optional) - filter by measurement Status.
     + PartnerID (string, optional) - filter by Partner ID.
 
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-    
+
 + Response 200 (application/json)
 
         [
@@ -1675,7 +1675,7 @@ different requested signals.
 
 + Parameters
     + ID (string) - Requested measurement UUID.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
@@ -1758,18 +1758,18 @@ Only DFX_ORG_ADMIN has permission to delete a specific measurment by measurement
 
 + Parameters
     + ID (string) - Requested measurement UUID.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
-+ Response 200 (application/json)        
+
++ Response 200 (application/json)
 
 
 ## Organizations [/organizations]
 
 This set of endpoints covers functions that allow to access resources on the Organizational level.
-All endpoints require Researcher, Lead or Admin access. 
+All endpoints require Researcher, Lead or Admin access.
 
 ### Retrieve [GET]
 
@@ -1812,8 +1812,8 @@ Retrieves information related to the current organization account.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Update [PATCH]
@@ -1830,7 +1830,7 @@ allows setting organization password policy:
 | PasswordRequireLowercase | Whether or not a password should include lower case characters |
 | PasswordRequireDigits | Whether or not a passwrod should include digits |
 | PasswordRequireSpecial | Whether or not a password should include sppecial characters: punctuation, #, %, etc. |
-| PasswordRotateDays | Number of days after a password was set till user is forced to change the password | 
+| PasswordRotateDays | Number of days after a password was set till user is forced to change the password |
 | RequireUniquePasswordsCount | Number of unique passwords user must set before older passwords can be reused |
 | LimitLoginAttemptsCountPerWindow | Maximum number of unsuccessful login attempts in a row within time window before user account becomes temporarily locked. Successful login resets the counter. |
 | LimitLoginAttemptsWindowDurationSeconds | Time window for LoginAttemptsCountPerWindow property |
@@ -1841,7 +1841,7 @@ allows setting organization password policy:
 `PasswordRequireCharacterClasses` requires just the number of character types without focusing at the character types themselves.
 E.g. if 2 character classes are required, passwords made of lower and upper case characters (`aaAA`), or digits and special (`00##`) will be accepted.
 
-Combining `PasswordRequireCharacterClasses` with `PasswordRequire*` properties allows setting more complex rules. E.g. requiring 3 character classes along with `PasswordRequireSpecial` forces passwords to include at least three character types, one of which must be _special_. 
+Combining `PasswordRequireCharacterClasses` with `PasswordRequire*` properties allows setting more complex rules. E.g. requiring 3 character classes along with `PasswordRequireSpecial` forces passwords to include at least three character types, one of which must be _special_.
 
 `LimitLoginAttemptsCountPerWindow` and `LimitLoginAttemptsWindowDurationSeconds` effectively allows setting login rate limiting. E.g. values 10 and 3600 respectively would set the limit on number of unsuccessful login attempts to 10 within one hour. Exceeding this limit would result HTTP 429 response.
 
@@ -1886,8 +1886,8 @@ This call requires DFX\_ORG\_ADMIN level scrpermissions.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 
@@ -1908,7 +1908,7 @@ to make sorting and filtering easier.
     + RoleID (string, optional) - filter by user's Role.
     + Gender (string, optional) - filter by user's gender.
     + StatusID (string, optional) - filter by user's Status.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
@@ -1950,8 +1950,8 @@ to make sorting and filtering easier.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Create User [POST /organizations/users]
@@ -1973,28 +1973,28 @@ To create a user under your organization. You will need to be logged in as a DFX
             "DateOfBirth" : "1986-02-10",
             "RoleID"      : "RoleID"
         }
-        
+
 + Response 200 (application/json)
 
         {
             "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
-            "ResetToken": "41f20423-e295-474d-9f52-f784b5a439cb" 
+            "ResetToken": "41f20423-e295-474d-9f52-f784b5a439cb"
         }
 
 + Response 401 (application/json)
 
         {
           "Code"    : "VALIDATION",
-          "Errors"  : { 
-            "DateOfBirth": [ "INVALID_DATE_RANGE" ] 
+          "Errors"  : {
+            "DateOfBirth": [ "INVALID_DATE_RANGE" ]
           }
         }
 
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Register License [POST /organizations/licenses]
@@ -2011,7 +2011,7 @@ The longevity and allowed origins of the token can be controlled by `TokenExpire
 calculated as a minimum of `TokenExpiresIn`, license `Expiration` date and organization's `SessionMaxDurationseconds`.
 In other words, this parameter can only be used to further reduce token's lifespan.
 
-`TokenSubject` locks the host which is allowed to use the token for its communication with DeepAffex. 
+`TokenSubject` locks the host which is allowed to use the token for its communication with DeepAffex.
 When set, the server will compare the token value with HTTP request's `Referer` header
 and reject the request if those don't match.
 
@@ -2045,15 +2045,15 @@ endpoint with your `Device Token`.
 + Response 404 (application/json)
 
         {
-            "Code": "INVALID_LICENSE_KEY", 
-            "Message": "License Key LICENSE_KEY not found" 
+            "Code": "INVALID_LICENSE_KEY",
+            "Message": "License Key LICENSE_KEY not found"
         }
 
 + Response 401 (application/json)
 
         {
-            "Code": "LICENSE_EXPIRED", 
-            "Message": "License has been expired" 
+            "Code": "LICENSE_EXPIRED",
+            "Message": "License has been expired"
         }
 
 ### Unregister License [DELETE /organizations/licenses]
@@ -2067,13 +2067,13 @@ Send your `Device Token` as the Authorization header to decommission a registere
 
 
 + Response 200 (application/json)
-    
+
 
 + Response 404 (application/json)
 
         {
-            "Code": "DEVICE_NOT_ACTIVE", 
-            "Message": "Device must be Active in order to be deregistered" 
+            "Code": "DEVICE_NOT_ACTIVE",
+            "Message": "Device must be Active in order to be deregistered"
         }
 
 ### Logo [GET /organizations/:ID/logo]
@@ -2081,10 +2081,10 @@ Send your `Device Token` as the Authorization header to decommission a registere
 Retrieves an Organization logo. This endpoint will returns you a buffer containing a logo
 
 + Parameters
-  
+
     + ID (string) - Organization ID.
-    
-    
+
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
@@ -2095,7 +2095,7 @@ Retrieves an Organization logo. This endpoint will returns you a buffer containi
         "{\"Name\":\"杭州师范大学附属医院 (HZ2Y)\",\"Identifier\":\"zjnu\",\"Created\":1536170947,\"Updated\":1536170947}"
 
        }
-        
+
 ### List Measurements [GET /organizations/measurements{?Limit,Offset,Date,EndDate,UserProfileID,UserProfileName,StudyID,StatusID,Username}]
 
 Similar to <a href='/#reference/0/measurements/list'>Measurements --> List</a> but retrieves all measurements across an Organization.
@@ -2113,11 +2113,11 @@ Accessible by users with Researcher or Admin role.
     + StudyID (string, optional) - filter by Study ID.
     + StatusID (string, optional) - filter by measurement Status ID.
     + UserName (string, optional) - filter by User email.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-    
+
 + Response 200 (application/json)
 
         [
@@ -2149,10 +2149,10 @@ Accessible by users with Researcher or Admin role.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
-        
+
 ### Retrieve Measurement [GET /organizations/measurements/{ID}]
 
 Similar to <a href='/#reference/0/measurements/retrieve'>Measurements --> Retrieve</a> but retrieves a measurement across the Organization.
@@ -2197,8 +2197,8 @@ Accessible by users with Researcher or Admin role.
 + Response 403 (application/json)
 
         {
-            "Code": "FORBIDDEN", 
-            "Message": "" 
+            "Code": "FORBIDDEN",
+            "Message": ""
         }
 
 ### List Profiles [GET /organizations/profiles{?UserProfileName,OwnerUser,Limit,Offset,StatusID,Created}]
@@ -2249,8 +2249,8 @@ Accessible by users with Researcher or Admin role.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Retrieve Profile [GET /organizations/profiles/{ID}]
@@ -2260,7 +2260,7 @@ Accessible by users with Researcher or Admin role.
 
 + Parameters
     + ID (string) - Profile UUID
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
@@ -2280,8 +2280,8 @@ Accessible by users with Researcher or Admin role.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Update Profile [PATCH /organizations/profiles/{ID}]
@@ -2291,11 +2291,11 @@ Accessible by users with Researcher or Admin role.
 
 + Parameters
     + ID (string) - Profile ID to perform the update on.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
     + Body
 
         {
@@ -2309,8 +2309,8 @@ Accessible by users with Researcher or Admin role.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 
@@ -2326,7 +2326,7 @@ Accessible only by users with Admin role.
 + Response 200 (application/json)
 
         {
-         
+
             "Gender": "other",
             "DateOfBirth": null,
             "Created": 1604687477,
@@ -2356,8 +2356,8 @@ Accessible only by users with Admin role.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Update User [PATCH /organizations/users/{ID}]
@@ -2368,7 +2368,7 @@ Accessible only by users with Admin role.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
     + Body
 
         {
@@ -2380,15 +2380,15 @@ Accessible only by users with Admin role.
             "WeightKg": "60"
         }
 + Response 200 (application/json)
-        { 
-        "success": true 
-        } 
+        {
+        "success": true
+        }
 
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Delete User [DELETE /organizations/users/{ID}]
@@ -2398,21 +2398,21 @@ Accessible only by users with Admin role.
 
 + Parameters
     + ID: user account ID
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
 
 + Response 200 (application/json)
-        { 
-            "success": true 
-        } 
+        {
+            "success": true
+        }
 
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### Login [POST /organizations/auth]
@@ -2442,14 +2442,14 @@ Login and obtain User Token.
 
         {
             "Code": "INVALID_CREDENTIALS",
-            "Message": "Invalid Credentials" 
+            "Message": "Invalid Credentials"
         }
 
 + Response 429 (application/json)
 
         {
-            "Code": "TOO_MANY_LOGIN_ATTEMPTS", 
-            "Message": "" 
+            "Code": "TOO_MANY_LOGIN_ATTEMPTS",
+            "Message": ""
         }
 
 ### Delete [DELETE /organizations/:ID/measurements]
@@ -2458,11 +2458,11 @@ Only DFX_ORG_ADMIN has permission to delete all measurment for its own organizat
 
 + Parameters
     + ID (string) - Requested Organization UUID.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
 + Response 200 (application/json)
 
 ### Delete Partner Measurement [DELETE /organizations/:ID/partners/:PartnerID/measurements]
@@ -2472,12 +2472,12 @@ Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific partner
 + Parameters
     + ID (string) - Requested Organization UUID.
     + PartnerID (string) - Requested PartnerID.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
-+ Response 200 (application/json)   
+
++ Response 200 (application/json)
 
 ## Studies [/studies]
 
@@ -2488,7 +2488,7 @@ pre-built study standard created and made available by the Nuralogix team.
 Templates are version controlled and named for use with a study.
 
 
-### Types [GET /studies/types{?StatusID}] 
+### Types [GET /studies/types{?StatusID}]
 
 Retrieves a list of studies that act as templates or base types. Types
 can be filtered by the Status querystring value. This is useful for
@@ -2496,7 +2496,7 @@ looking up all studies and current.
 
 + Parameters
     + StatusID (string, optional) - Filter for listing by status flag.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
@@ -2655,7 +2655,7 @@ after a study is created.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
     + Body
 
         {
@@ -2667,9 +2667,9 @@ after a study is created.
 
 + Response 200 (application/json)
 
-          { 
+          {
             "success": true
-          } 
+          }
 
 ### Retrieve [GET /studies/{ID}]
 
@@ -2678,7 +2678,7 @@ displays the amount of measurements captured in it to date.
 
 + Parameters
     + ID (string) - The UUID of the study to retrieve.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
@@ -2703,9 +2703,9 @@ displays the amount of measurements captured in it to date.
 ### Retrieve SDK Study Config Data [POST /studies/sdkconfig]
 
 Retrieves a study's binary config data that has to be used to initialize
-the DFX SDK Factory object. Get the SDKID parameter by calling GetSDKId on 
+the DFX SDK Factory object. Get the SDKID parameter by calling GetSDKId on
 the DFX SDK Factory object. A response of 304 means that existing file in hand
-is up to date. 
+is up to date.
 
 + Request (application/json)
     + Headers
@@ -2741,16 +2741,16 @@ Deletes a study. However, if there are any measurements taken under that Study a
 
 + Parameters
     + ID (string) - The UUID of the study to delete.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
 
 + Response 200 (application/json)
 
-          { 
+          {
             "success": true
-          } 
+          }
 
 ### List [GET /studies{?StatusID}]
 
@@ -2798,12 +2798,12 @@ Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific study f
 
 + Parameters
     + ID (string) - Requested Study UUID.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
-+ Response 200 (application/json)    
+
++ Response 200 (application/json)
 
 ## Devices [/devices]
 
@@ -2857,7 +2857,7 @@ device is mapped to a device type ID.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
     + Body
 
         {
@@ -2881,7 +2881,7 @@ Updates a device reference via the UUID supplied.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
+
     + Body
 
         {
@@ -2928,8 +2928,8 @@ that have been associated with it.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
-            "Message": "" 
+            "Code": "RESTRICTED_ACCESS",
+            "Message": ""
         }
 
 ### List [GET /devices{?StatusID,Unique,DeviceTypeID,Name,Version,Date,EndDate,Limit,Offset}]
@@ -2988,7 +2988,7 @@ Retrieves a list of existing devices in an organization.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
+            "Code": "RESTRICTED_ACCESS",
             "Message": ""
         }
 
@@ -3005,7 +3005,7 @@ Deletes a device from the dataset.
 + Response 403 (application/json)
 
         {
-            "Code": "RESTRICTED_ACCESS", 
+            "Code": "RESTRICTED_ACCESS",
             "Message": ""
         }
 
@@ -3016,22 +3016,22 @@ Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific device 
 
 + Parameters
     + ID (string) - Requested Device UUID.
-    
+
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
-+ Response 200 (application/json)    
+
++ Response 200 (application/json)
 
 ### Retrieve license ID [GET /devices/license]
 
-We want to extend the EP to use deviceID (instead of :ID) in the device token to extract license information and return to client.     
+We want to extend the EP to use deviceID (instead of :ID) in the device token to extract license information and return to client.
 
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-        
-+ Response 200 (application/json)  
+
++ Response 200 (application/json)
 
        {
             "ID": "abca6114-b62f-e74c6df2213d",
@@ -3092,7 +3092,7 @@ Request to send password reset link to user's email.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-    
+
     + Body
 
         {
@@ -3109,14 +3109,14 @@ Request to send password reset link to user's email.
 + Response 403 (application/json)
 
         {
-            "Code": "USER_PASSWORD_RESET_ERROR", 
+            "Code": "USER_PASSWORD_RESET_ERROR",
             "Message": "No such user."
         }
 
 + Response 403 (application/json)
 
         {
-            "Code": "USER_RESET_ERROR", 
+            "Code": "USER_RESET_ERROR",
             "Message": "Could not reset user password"
         }
 
@@ -3128,7 +3128,7 @@ Reset password.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-    
+
     + Body
 
         {
@@ -3145,7 +3145,7 @@ Reset password.
 + Response 403 (application/json)
 
         {
-            "Code": "INVALID_RESET_TOKEN", 
+            "Code": "INVALID_RESET_TOKEN",
             "Message": "Invalid reset token provided. please try resetting password again"
         }
 
@@ -3156,7 +3156,7 @@ Request to send password reset link to user's phone number.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-    
+
     + Body
 
         {
@@ -3173,14 +3173,14 @@ Request to send password reset link to user's phone number.
 + Response 404 (application/json)
 
         {
-            "Code": "USER_NOT_FOUND", 
+            "Code": "USER_NOT_FOUND",
             "Message": "User not found."
         }
 
 + Response 403 (application/json)
 
         {
-            "Code": "USER_RESET_ERROR", 
+            "Code": "USER_RESET_ERROR",
             "Message": "Could not reset user password"
         }
 
@@ -3191,7 +3191,7 @@ Request to send login code.
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-    
+
     + Body
 
         {
@@ -3208,27 +3208,27 @@ Request to send login code.
 + Response 401 (application/json)
 
         {
-            "Code": "LOGIN_METHOD", 
+            "Code": "LOGIN_METHOD",
             "Message": "Invalid login method! Try to login with an Email."
         }
 
 + Response 404 (application/json)
 
         {
-            "Code": "INVALID_USER", 
+            "Code": "INVALID_USER",
             "Message": "User not found"
         }
 
 ### Renew [POST /auths/renew]
 
-Renew user/device access and refresh token. When you register a license or login with user's credentials, a pair 
+Renew user/device access and refresh token. When you register a license or login with user's credentials, a pair
 of Token and RefreshToken is sent to a client. The client needs to send the matching pair to exchange it
-with a new pair. The old pair will not be valid after calling this endpoint. RefreshToken is one-time use. 
+with a new pair. The old pair will not be valid after calling this endpoint. RefreshToken is one-time use.
 
 + Request (application/json)
     + Headers
         Authorization: Bearer <api token>
-    
+
     + Body
 
         {
