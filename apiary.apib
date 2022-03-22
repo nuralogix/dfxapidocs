@@ -283,18 +283,20 @@ Organizations are provided with License Keys that can be exchanged for API token
 
 ## 3.5.1 More details and best practices
 
-* Since tokens represent authentication information, please make sure to **store them 
+* Since tokens represent authentication information, please make sure to **store them
 securely** - typically in some form of secure storage.
-* Some License Keys have a limited number of allowed active Devices. If you need to 
-use your License on a different device, make sure to unregister your current device 
+* Some License Keys have a limited number of allowed active Devices. If you need to
+use your License on a different device, make sure to unregister your current device
 first by calling the <a href='/#reference/0/organizations/unregister-license'>Organizations UnregisterLicense</a> endpoint.
-* The response to Organizations RegisterLicense contains a RoleID for the license - 
+* The response to Organizations RegisterLicense contains a RoleID for the license -
 if it is SDK_DEVICE, then obtaining a user token is mandatory.
-* Device tokens may expire. To ensure that a token is valid, you can call the 
-<a href='/#reference/0/general/verify-token'>General VerifyToken</a> endpoint. 
-If the ActiveLicense field in the response is false or if the API returns one of the 
-following errors: `INVALID_TOKEN`, `LICENSE_EXPIRED`, `INACTIVE_LICENSE` or `INACTIVE_DEVICE`, 
+* Tokens may expire. To ensure that a token is valid, you can call the
+<a href='/#reference/0/general/verify-token'>General VerifyToken</a> endpoint.
+If the ActiveLicense field in the response is false or if the API returns one of the
+following errors: `INVALID_TOKEN`, `LICENSE_EXPIRED`, `INACTIVE_LICENSE` or `INACTIVE_DEVICE`,
 then the client must re-register the license.
+* Please use the <a href="/#reference/0/auths/renew">Auths.Renew</a> endpoint
+refresh your token.
 
 <!--**Note:** all endpoints, except for <a href='/#reference/0/organizations/register-license'>Register License</a>, <a href='/#reference/0/organizations/login'>User Login</a>, <a href='/#reference/0/general/mime-types'>Mime Types</a>, <a href='/#reference/0/general/status'>Status</a>, and <a href='/#reference/0/general/status'>Status</a> require authentication.-->
 
@@ -329,7 +331,7 @@ available in the mapping as they may be outlined only for internal use.
 |Users|222|POST|<a href='/#reference/0/users/enable-two-factor-authentication-for-logged-in-user'>Enable 2FA for logged in user</a>|/users/mfa|
 |Users|223|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-logged-in-user'>Disable 2FA for logged in user</a>|/users/mfa|
 |Users|224|DELETE|<a href='/#reference/0/users/disable-two-factor-authentication-for-specified-user'>Disable 2FA for specified user</a>|/users/:ID/mfa|
-|Users|225|DELETE|<a href='/#reference/0/users/renew-token'>Renew token which expired due to inactivity</a>|/users/auth/renew|
+<!-- |Users|225|DELETE|<a href='/#reference/0/users/renew-token'>Renew token which expired due to inactivity</a>|/users/auth/renew| -->
 |Users|226|DELETE|<a href='/#reference/0/users/logout'>Logout user from all sessions at once</a>|/users/auth|
 |Profiles|400|POST|<a href='/#reference/0/profiles/create-profile'>`create`</a>|/users/profiles|
 |Profiles|401|GET|<a href='/#reference/0/profiles/retrieve-profile'>`retrieve`</a>|/users/profiles/:ID|
@@ -387,6 +389,11 @@ available in the mapping as they may be outlined only for internal use.
 |Devices|907|DELETE|<a href='/#reference/0/devices/delete-device-measurement'>`Delete device Measurement`</a>|/devices/:ID/measurements|
 |Devices|908|GET|<a href='/#reference/0/devices/retrieve-license-id'>`Retrieve license ID`</a>|/devices/license|
 |Licenses|1406|GET|<a href='/#reference/0/licenses/retrieve-anura-license'>`listOrgLicenses`|/licenses/organization|
+|Auths|2300|PATCH|<a href='/#reference/0/auths/users/reset'>`Request to send reset password link to user's email`|/auths/users/reset|
+|Auths|2301|PATCH|<a href='/#reference/0/auths/users'>`Request to reset password`|/auths/users|
+|Auths|2302|PATCH|<a href='/#reference/0/auths/users/reset/mobile'>`Request to send reset password link to user's phone`|/auths/users/reset/mobile|
+|Auths|2303|POST|<a href='/#reference/0/auths/users/code/'>`Request login code`|/auths/renew|
+|Auths|2304|POST|<a href='/#reference/0/auths/renew'>`Renew access and refresh token pair`|/auths/renew|
 
 # 4. Tokens
 
@@ -737,7 +744,8 @@ API call to the server.
 + Response 200 (application/json)
 
         {
-            "Token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiIxYTY3ODI2Mi03NjgxLTQ4NTItYjkxZS00NzBiOGIzMzBlMmIiLCJPcmdhbml6YXRpb25JZCI6ImNmMTAyYzQyLWYyYmEtNGU4Ny1hOTU0LWU0NDlkZTZmMWRkMiIsIkRldmljZUlkIjpudWxsLCJpYXQiOjE0OTU3MjQ1MjEsImV4cCI6MTUzMTcyMDkyMSwiaXNzIjoidXJuOm51cmFsb2dpeCJ9.JRAhY36Eh6MwlQ2RF4w47p2pQBwG2HQaOdSsxvqqk-rZ-jKRyyWvS8gtRtJ83qwba3qwTB893LZfPio2cwEG5IUU6OV0C1VCOI4cvPw6QAHarz2yx65Y9QHnSxfyA_AFIXBEIjvUVUEyPYWp6AyzC8izwtWlP2DznTMGrFTBJfG36siAn8RlGYBXf-A4dehMsKAKcq8q_s4CeTjATjOa2MbCHLQ3H6PEmG6kks98psJ4q0Z6zhycNIDCL1D6adpR208jj-0TfxJ-7wQSY528Y7t4qs7bCFdp5yzoP7ueiYfefk03IUjYcsFxN_FmVlPWbpMWhmgI4HN-yE2GM6l0tA"
+            "Token": "USER_TOKEN",
+            "RefreshToken": "REFRESH_TOKEN"
         }
 
 + Response 401 (application/json)
@@ -769,7 +777,9 @@ API call to the server.
         }
 
 
-### Request Phone Login Code [GET /users/auth/code/{OrgKey}/{PhoneNumber}]
+### Request Phone Login Code [GET /users/auth/code/{OrgKey}/{PhoneNumber} [Deprecated]]
+
+***Deprecated***: please use <a href='/#reference/0/auths/users/code/'> Auths request login code</a>
 
 Request a 6-digit login code for a User account created with a Phone Number. Use this code in `loginWithCode` endpoint to obtain `UserToken`.
 
@@ -1029,7 +1039,9 @@ Retrieves User's Role.
         }
 
 
-### Send Reset Request [PATCH /users/sendreset]
+### Send Reset Request [PATCH /users/sendreset [Deprecated]]
+
+***Deprecated***: please use <a href='/#reference/0/auths/users/reset'> Auths send reset endpoint</a>
 
 Dispatches a password reset request email to the user which
 contains a reset password token. Upon retrieving this value the
@@ -1053,7 +1065,9 @@ token is used against the Reset Password endpoint.
             "Error": "USER_NOT_FOUND"
         }
 
-### Reset Password [PATCH /users/reset]
+### Reset Password [PATCH /users/reset [Deprecated]]
+
+***Deprecated***: please use <a href='/#reference/0/auths/users'> Auths reset password endpoint</a>
 
 Performs a password reset request against the user account
 if supplied with a token and new password.
@@ -1200,39 +1214,39 @@ This End Point allow user to change password for already verified user
             "Message": "" 
         }
         
-### Renew token [POST /users/auth/renew]
+<!-- ### Renew token [POST /users/auth/renew] -->
 
-Renews token previously expired due to inactivity. This method is useful for client applications which 'upgrade' device tokens to user tokens and do not want to request user to login too often.
-However, since some sort of validation must happen, the endpoint requires a license key that was used to create the device part of the token.
-The request succeeds only if:
-- Token has expired due to inactivity
-- Token is or was created from a device token
-- Privided license key belongs to the license used to create underlying device token
-- The license key belongs to a license that hasn't expired yet
+<!-- Renews token previously expired due to inactivity. This method is useful for client applications which 'upgrade' device tokens to user tokens and do not want to request user to login too often. -->
+<!-- However, since some sort of validation must happen, the endpoint requires a license key that was used to create the device part of the token. -->
+<!-- The request succeeds only if: -->
+<!-- - Token has expired due to inactivity -->
+<!-- - Token is or was created from a device token -->
+<!-- - Privided license key belongs to the license used to create underlying device token -->
+<!-- - The license key belongs to a license that hasn't expired yet -->
 
-+ Request (application/json)
-    + Headers
-        Authorization: Bearer <api token>
-        
-+ Request (application/json)
+<!-- + Request (application/json) -->
+    <!-- + Headers -->
+        <!-- Authorization: Bearer <api token> -->
 
-        {
-            "Key": "licensekey",
-        }
+<!-- + Request (application/json) -->
 
-+ Response 200 (application/json)
-        {
-            "success": true
-        }
+        <!-- { -->
+            <!-- "Key": "licensekey", -->
+        <!-- } -->
+
+<!-- + Response 200 (application/json) -->
+        <!-- { -->
+            <!-- "success": true -->
+        <!-- } -->
 
 
 
-+ Response 400 (application/json)
+<!-- + Response 400 (application/json) -->
 
-        {
-            "Code": "VALIDATION_ERROR", 
-            "Message": "Provided license Key is either invalid, expired or not used to register given device" 
-        }
+        <!-- { -->
+            <!-- "Code": "VALIDATION_ERROR", -->
+            <!-- "Message": "Provided license Key is either invalid, expired or not used to register given device" -->
+        <!-- } -->
 
 ### Logout [DELETE /users/auth]
 
@@ -2022,7 +2036,8 @@ endpoint with your `Device Token`.
 
         {
             "DeviceID": "876ff630-84f8-45d8-b30e-6ebeb42c0d85",
-            "Token": "YOUR_API_TOKEN",
+            "Token": "DEVICE_TOKEN",
+            "RefreshToken": "REFRESH_TOKEN",
             "RoleID": "Role associated with your License",
             "UserID": "User account associated with your License"
         }
@@ -3064,3 +3079,166 @@ List licenses available to your User / Organization.
             "DeviceRegistrations": 114
         }
     ]
+
+## Auths [/auths]
+
+These endpoints provide user/device authentication.
+
+
+### Request reset password link to user's email [PATCH /auths/users/reset]
+
+Request to send password reset link to user's email.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "Email": "user@email.com",
+            "Identifier": "organization_identifier"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "success": true
+    }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "USER_PASSWORD_RESET_ERROR", 
+            "Message": "No such user."
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "USER_RESET_ERROR", 
+            "Message": "Could not reset user password"
+        }
+
+
+### Reset password [PATCH /auths/users]
+
+Reset password.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "ResetToken": "reset_token",
+            "Password": "password12345"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "success": true
+    }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "INVALID_RESET_TOKEN", 
+            "Message": "Invalid reset token provided. please try resetting password again"
+        }
+
+### Request reset password link to user's phone number [PATCH /auths/users/reset/mobile]
+
+Request to send password reset link to user's phone number.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "PhoneNumber": "phone_number",
+            "Email": "user_email"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "success": true
+    }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "USER_NOT_FOUND", 
+            "Message": "User not found."
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "USER_RESET_ERROR", 
+            "Message": "Could not reset user password"
+        }
+
+### Request login code [PATCH /auths/users/code]
+
+Request to send login code.
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "PhoneNumber": "phone_number",
+            "Identifier": "organization_identifier"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "success": true
+    }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "LOGIN_METHOD", 
+            "Message": "Invalid login method! Try to login with an Email."
+        }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_USER", 
+            "Message": "User not found"
+        }
+
+### Renew [POST /auths/renew]
+
+Renew user/device access and refresh token. When you register a license or login with user's credentials, a pair 
+of Token and RefreshToken is sent to a client. The client needs to send the matching pair to exchange it
+with a new pair. The old pair will not be valid after calling this endpoint. RefreshToken is one-time use. 
+
++ Request (application/json)
+    + Headers
+        Authorization: Bearer <api token>
+    
+    + Body
+
+        {
+            "Token": "DEVICE_OR_USER_TOKEN",
+            "RefreshToken": "REFRESH_TOKEN"
+        }
+
++ Response 200 (application/json)
+
+    {
+        "Token": "NEW_DEVICE_OR_USER_TOKEN",
+        "RefreshToken": "NEW_REFRESH_TOKEN"
+    }
