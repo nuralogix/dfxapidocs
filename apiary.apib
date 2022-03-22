@@ -742,7 +742,8 @@ API call to the server.
 + Response 200 (application/json)
 
         {
-            "Token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiIxYTY3ODI2Mi03NjgxLTQ4NTItYjkxZS00NzBiOGIzMzBlMmIiLCJPcmdhbml6YXRpb25JZCI6ImNmMTAyYzQyLWYyYmEtNGU4Ny1hOTU0LWU0NDlkZTZmMWRkMiIsIkRldmljZUlkIjpudWxsLCJpYXQiOjE0OTU3MjQ1MjEsImV4cCI6MTUzMTcyMDkyMSwiaXNzIjoidXJuOm51cmFsb2dpeCJ9.JRAhY36Eh6MwlQ2RF4w47p2pQBwG2HQaOdSsxvqqk-rZ-jKRyyWvS8gtRtJ83qwba3qwTB893LZfPio2cwEG5IUU6OV0C1VCOI4cvPw6QAHarz2yx65Y9QHnSxfyA_AFIXBEIjvUVUEyPYWp6AyzC8izwtWlP2DznTMGrFTBJfG36siAn8RlGYBXf-A4dehMsKAKcq8q_s4CeTjATjOa2MbCHLQ3H6PEmG6kks98psJ4q0Z6zhycNIDCL1D6adpR208jj-0TfxJ-7wQSY528Y7t4qs7bCFdp5yzoP7ueiYfefk03IUjYcsFxN_FmVlPWbpMWhmgI4HN-yE2GM6l0tA"
+            "Token": "YOUR_API_TOKEN",
+            "RefreshToken": "YOUR_API_REFRESH_TOKEN"
         }
 
 + Response 401 (application/json)
@@ -2034,6 +2035,7 @@ endpoint with your `Device Token`.
         {
             "DeviceID": "876ff630-84f8-45d8-b30e-6ebeb42c0d85",
             "Token": "YOUR_API_TOKEN",
+            "RefreshToken": "YOUR_API_REFRESH_TOKEN",
             "RoleID": "Role associated with your License",
             "UserID": "User account associated with your License"
         }
