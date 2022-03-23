@@ -751,6 +751,7 @@ account. The rest of the fields are optional.
         {
             "Code": "UNAUTHORIZED_ACCESS"
         }
+
 + Response 409 (application/json)
 
         {
@@ -820,9 +821,9 @@ enabled for this user.
         }
 
 
-### Request Phone Login Code [GET /users/auth/code/{OrgKey}/{PhoneNumber} [Deprecated]]
+### Request Phone Login Code [GET /users/auth/code/{OrgKey}/{PhoneNumber}]
 
-***Deprecated***: please use <a href="/#reference/0/auths/users/code/"> Auths request login code</a>
+⚠️ ***Deprecated***: Please use <a href="/#reference/0/auths/users/code/"> Auths request login code</a> instead. ⚠️
 
 Request a 6-digit login code for a User account created with a Phone Number. Use
 this code in `loginWithCode` endpoint to obtain `UserToken`.
@@ -1102,9 +1103,9 @@ Retrieves User's Role.
         }
 
 
-### Send Reset Request [PATCH /users/sendreset [Deprecated]]
+### Send Reset Request [PATCH /users/sendreset]
 
-***Deprecated***: please use <a href="/#reference/0/auths/users/reset"> Auths send reset endpoint</a>
+⚠️ ***Deprecated***: Please use <a href="/#reference/0/auths/users/reset"> Auths send reset endpoint</a> instead. ⚠️
 
 Dispatches a password reset request email to the user which
 contains a reset password token. Upon retrieving this value the
@@ -1129,9 +1130,9 @@ token is used against the Reset Password endpoint.
             "Error": "USER_NOT_FOUND"
         }
 
-### Reset Password [PATCH /users/reset [Deprecated]]
+### Reset Password [PATCH /users/reset]
 
-***Deprecated***: please use <a href="/#reference/0/auths/users"> Auths reset password endpoint</a>
+⚠️ ***Deprecated***: Please use <a href="/#reference/0/auths/users"> Auths reset password endpoint</a> instead. ⚠️
 
 Performs a password reset request against the user account
 if supplied with a token and new password.
