@@ -404,6 +404,9 @@ mapping as they may be outlined only for internal use.
 | Studies       | 807      | PATCH   | <a href="/#reference/0/studies/update">`update`</a>                                                                   | /studies/{ID}                                         |
 | Studies       | 808      | DELETE  | <a href="/#reference/0/studies/delete">`remove`</a>                                                                   | /studies/{ID}                                         |
 | Studies       | 811      | DELETE  | <a href="/#reference/0/studies/delete-study-measurement">`Delete Study Measurement`</a>                               | /studies/{ID}/measurements                            |
+| Studies       | 812      | GET     | <a href="/#reference/0/studies/list-survey-signal-ids">`List Study Survey Signals`</a>                                | /studies/{ID}/surveys                                 |
+| Studies       | 813      | GET     | <a href="/#reference/0/studies/get-survey-schema">`Get Survey Schema`</a>                                             | /studies/{ID}/surveys/{SignalID}/language/{Language}  |
+| Studies       | 814      | POST    | <a href="/#reference/0/studies/get-survey-result">`Get Survey Results`</a>                                            | /studies/{ID}/surveys/{SignalID}/language/{Language}  |
 | Devices       | 900      | GET     | <a href="/#reference/0/devices/types">`types`</a>                                                                     | /devices/types                                        |
 | Devices       | 902      | GET     | <a href="/#reference/0/devices/retrieve">`retrieve`</a>                                                               | /devices/{ID}                                         |
 | Devices       | 903      | POST    | <a href="/#reference/0/devices/create">`create`</a>                                                                   | /devices                                              |
@@ -2977,6 +2980,72 @@ for its own organization.
             Authorization: Bearer <api token>
 
 + Response 200 (application/json)
+
+
+### List Study Survey Signal IDs [GET /studies/{ID}/surveys]
+
+List all available survey signal IDs in the study. Client can loop through the list of signal IDs and 
+call <a href="/#reference/0/studies/get-survey-schema">`Get Survey Schema`</a> followed by posting survey
+answers to <a href="/#reference/0/studies/get-survey-result">`Get Survey Results`</a> for each signal ID.
+
++ Parameters
+    + ID (string) - Requested Study UUID.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+          ["Signal_ID_1", "Signal_ID_2",...]
+
++ Response 403 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_STUDY"
+        }
+
+
+### Get Survey Schema [GET /studies/{ID}/surveys/{SignalID}/language/{Language}]
+
+Get survey schema for "SignalID" for language "Language". 
+"SignalID" must belong to the list retreived by <a href="/#reference/0/studies/list-survey-signal-ids">`List Study Survey Signals`</a>.
+"Language" parameter is ISO 3166-1 (Alpha-2) code for languages.
+
++ Parameters
+    + ID (string)       - Requested Study UUID.
+    + SignalID (string) - Requested Signal ID.
+    + Language (string) - Requested Language.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+          
+
++ Response 403 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_STUDY"
+        }
 
 ## Devices [/devices]
 
