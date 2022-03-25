@@ -344,7 +344,6 @@ mapping as they may be outlined only for internal use.
 | Users         | 206      | DELETE  | <a href="/#reference/0/users/remove">`remove`</a>                                                                     | /users                                                |
 | Users         | 208      | PATCH   | <a href="/#reference/0/users/update">`update`</a>                                                                     | /users                                                |
 | Users         | 209      | PATCH   | <a href="/#reference/0/users/send-reset-request">`sendReset`</a>                                                      | /users/sendreset                                      |
-| Users         | 210      | PATCH   | <a href="/#reference/0/users/reset-password">`resetPassword`</a>                                                      | /users/reset                                          |
 | Users         | 211      | PATCH   | <a href="/#reference/0/users/retrieve-user-role">`getRole`</a>                                                        | /users/role                                           |
 | Users         | 212      | PATCH   | <a href="/#reference/0/users/verify-user-account">`verify`</a>                                                        | /users/verify                                         |
 | Users         | 213      | PATCH   | <a href="/#reference/0/users/send-account-verification-code">`verificationCode`</a>                                   | /users/verificationCode/{ID}/{OrgKey}                 |
@@ -414,8 +413,6 @@ mapping as they may be outlined only for internal use.
 | Devices       | 908      | GET     | <a href="/#reference/0/devices/retrieve-license-id">`Retrieve license ID`</a>                                         | /devices/license                                      |
 | Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/retrieve-anura-license">`listOrgLicenses`                                             | /licenses/organization                                |
 | Auths         | 2300     | PATCH   | <a href="/#reference/0/auths/users/reset">`Request to send reset password link to user's email`                       | /auths/users/reset                                    |
-| Auths         | 2301     | PATCH   | <a href="/#reference/0/auths/users">`Request to reset password`                                                       | /auths/users                                          |
-| Auths         | 2302     | PATCH   | <a href="/#reference/0/auths/users/reset/mobile">`Request to send reset password link to user's phone`                | /auths/users/reset/mobile                             |
 | Auths         | 2303     | POST    | <a href="/#reference/0/auths/users/code/">`Request login code`                                                        | /auths/renew                                          |
 | Auths         | 2304     | POST    | <a href="/#reference/0/auths/renew">`Renew access and refresh token pair`                                             | /auths/renew                                          |
 
@@ -1128,32 +1125,6 @@ token is used against the Reset Password endpoint.
 
         {
             "Error": "USER_NOT_FOUND"
-        }
-
-### Reset Password [PATCH /users/reset]
-
-⚠️ ***Deprecated***: Please use <a href="/#reference/0/auths/users"> Auths reset password endpoint</a> instead. ⚠️
-
-Performs a password reset request against the user account
-if supplied with a token and new password.
-
-+ Request (application/json)
-
-        {
-            "ResetToken": "USHD927wjed89",
-            "Password": "newpassword"
-        }
-
-+ Response 200 (application/json)
-
-        {
-            "success": true
-        }
-
-+ Response 401 (application/json)
-
-        {
-            "Error": "INVALID_RESET_TOKEN"
         }
 
 ### Send Account Verification Code [GET /users/verificationCode/{ID}/OrgKey]
@@ -3312,69 +3283,6 @@ Request to send password reset link to user's email.
             "Message": "Could not reset user password"
         }
 
-
-### Reset password [PATCH /auths/users]
-
-Reset password.
-
-+ Request (application/json)
-
-    + Body
-
-            {
-                "ResetToken": "RESET_TOKEN",
-                "Password": "password12345"
-            }
-
-+ Response 200 (application/json)
-
-        {
-            "success": true
-        }
-
-+ Response 403 (application/json)
-
-        {
-            "Code": "INVALID_RESET_TOKEN",
-            "Message": "Invalid reset token provided. please try resetting password again"
-        }
-
-### Request reset password link to user's phone number [PATCH /auths/users/reset/mobile]
-
-Request to send password reset link to user's phone number.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer <api token>
-
-    + Body
-
-            {
-                "PhoneNumber": "phone_number",
-                "Email": "user_email"
-            }
-
-+ Response 200 (application/json)
-
-        {
-            "success": true
-        }
-
-+ Response 404 (application/json)
-
-        {
-            "Code": "USER_NOT_FOUND",
-            "Message": "User not found."
-        }
-
-+ Response 403 (application/json)
-
-        {
-            "Code": "USER_RESET_ERROR",
-            "Message": "Could not reset user password"
-        }
 
 ### Request login code [PATCH /auths/users/code]
 
