@@ -72,14 +72,13 @@ API. We recommend leveraging this transport for platforms that need performance
 and real-time response.
 
 In order to open a connection to the WebSocket service an `Authorization` header
-must be supplied. Upon connecting all exchanges with the server must follow a
+must be supplied. Also during connection creation, `json` needs to be passed as supported protocol to the server 
+which indicates to the server that client's payloads will be serialized JSON.
+Upon connecting all exchanges with the server must follow a
 consistent request pattern described below.
 
 Service calls to the WebSocket service use action identifiers and request IDs.
-The body of the request has to be a serialized
-[Protocol Buffer](https://developers.google.com/protocol-buffers/). Protobuf
-data over WebSockets requires consuming the proto definition files that comes
-with SDK distribution.
+The body of the request has to be a serialized JSON.
 
 In order to maintain the connection with the server, you must implement proper
 ping/pong heartbeats as required by the WebSocket standard specification. Aside
@@ -137,7 +136,35 @@ interfere with other concurrent connections using the same token. Request
 identifiers are not stored, so reusing them is possible however not recommended.
 
 The remaining bytes of the payload represents the full body of your request.
-For protocol buffers, send the buffer representing the payload.
+Request body is similar to REST API request body documented for each endpoint. Path parameters
+must be passed as `Params` key in the request JSON. The value for `Params` is a another JSON where a key is 
+path parameter name and its value is the path parameter's value. 
+
+Following is an example of websocket payload body for <a href="/#reference/0/organizations/delete-partner-measurement">`Delete Partner Measurement`</a> 
+where the endpoint url is `/organizations/{ID}/partners/{PartnerID}/measurements`:
+```
+{
+    "Params": {
+        "ID": "organization_id", 
+        "PartnerID": "partner_id"
+    },
+    "Query": {},
+}
+```
+In this example, path parameters `ID` and `PartnerID` are specified in `Params` and endpoint does not require body parameters.
+
+Following is an example of websocket payload body for <a href="/#reference/0/studies/update">`update study`</a> where the
+endpoint url is `/studies/{ID}`:
+```
+{
+    "Params": {"ID": "study_id"},
+    "Query": {},
+    "Name": "Study Type Sample",
+    "StatusID": "INACTIVE",
+    "Description": "New description goes here.",
+    "Config": {}
+}
+```
 
 ## 2.3 Receiving Data
 
@@ -149,8 +176,7 @@ Buffer( [ string:10 ][ string:3 ][ string/buffer ] )
 ```
 
 The first 10 bytes are the request identifier, the second 3 bytes are an HTTP
-status identifier and the remaining bytes are the response body as a string or
-Protobuf.
+status identifier and the remaining bytes are the response body as a serialized JSON which is similar to REST API response documented for each endpoint.
 
 When implementing a request/response structure, the client needs to manage
 requests in memory and await the servers response. The server will always
@@ -197,36 +223,6 @@ request.
 Error messages are transported in turn in similar object formats as listed
 below. The WebSocket interface also follow this pattern.
 
-Note: Many endpoints within DFX use arrays in the root of the payload.
-Unfortunately Protobufs do not support rooted arrays, hence the value needs to
-be wrapped in an object. The DFX API looks for the `Values` property in a
-payload and handles the containing array as a root array. The following is an
-example of a request to `Groups.addUsers`:
-
-REST request example:
-
-```
-[
-    "7ab8bee7-808c-4123-9811-ef85adb8c77f",
-    "7ab8bee7-808c-4123-9811-ef85adb8c75f",
-    "7ab8bee7-808c-4123-9811-ef85adb8c71f",
-    "7ab8bee7-808c-4123-9811-ef85adb8c72f",
-    "7ab8bee7-808c-4123-9811-ef85adb8c77f"
-]
-```
-
-Protobuf wrapped example of the same payload:
-
-```
-{
-    "Values": [
-        "7ab8bee7-808c-4123-9811-ef85adb8c77f",
-        "7ab8bee7-808c-4123-9811-ef85adb8c75f",
-        "7ab8bee7-808c-4123-9811-ef85adb8c71f",
-        "7ab8bee7-808c-4123-9811-ef85adb8c72f",
-        "7ab8bee7-808c-4123-9811-ef85adb8c77f"
-    ]
-}
 ```
 
 # 3.1. REST Header Response Codes
@@ -411,10 +407,10 @@ mapping as they may be outlined only for internal use.
 | Devices       | 906      | GET     | <a href="/#reference/0/devices/list">`list`</a>                                                                       | /devices                                              |
 | Devices       | 907      | DELETE  | <a href="/#reference/0/devices/delete-device-measurement">`Delete device Measurement`</a>                             | /devices/{ID}/measurements                            |
 | Devices       | 908      | GET     | <a href="/#reference/0/devices/retrieve-license-id">`Retrieve license ID`</a>                                         | /devices/license                                      |
-| Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/retrieve-anura-license">`listOrgLicenses`                                             | /licenses/organization                                |
-| Auths         | 2300     | PATCH   | <a href="/#reference/0/auths/users/reset">`Request to send reset password link to user's email`                       | /auths/users/reset                                    |
-| Auths         | 2303     | POST    | <a href="/#reference/0/auths/users/code/">`Request login code`                                                        | /auths/renew                                          |
-| Auths         | 2304     | POST    | <a href="/#reference/0/auths/renew">`Renew access and refresh token pair`                                             | /auths/renew                                          |
+| Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/retrieve-anura-license">`listOrgLicenses`</a>                                         | /licenses/organization                                |
+| Auths         | 2300     | PATCH   | <a href="/#reference/0/auths/users/reset">`Request to send reset password link to user's email`</a>                   | /auths/users/reset                                    |
+| Auths         | 2303     | POST    | <a href="/#reference/0/auths/users/code/">`Request login code`</a>                                                    | /auths/renew                                          |
+| Auths         | 2304     | POST    | <a href="/#reference/0/auths/renew">`Renew access and refresh token pair`</a>                                         | /auths/renew                                          |
 
 # 4. Tokens
 
