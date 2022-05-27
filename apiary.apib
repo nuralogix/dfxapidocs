@@ -74,7 +74,7 @@ and real-time response.
 In order to open a connection to the WebSocket service an `Authorization` header
 must be supplied. Also during connection creation, the string `"json"` needs to
 be passed as the WebSocket protocol to the server which indicates to the server
-that the client's payloads will be JSON. Upon connecting all exchanges with the
+that the client's payloads will be JSON. Upon connecting, all exchanges with the
 server must follow a consistent request pattern described below.
 
 Service calls to the WebSocket service use action identifiers and request IDs.
@@ -142,7 +142,7 @@ Request body is similar to REST API request body documented for each endpoint.
 URL path parameters must be passed via the `"Params"` key in the request
 JSON and URL query parameters via the `"Query"` key. Their values should be JSON
 objects whose keys are URL path / query parameter names and values are the
-corresponding the path / query parameter's values.
+corresponding path / query parameter's values.
 
 For example, for the endpoint <a href="/#reference/0/organizations/delete-partner-measurement">`Delete Partner Measurements`</a>
 (url: `/organizations/{ID}/partners/{PartnerID}/measurements`):
