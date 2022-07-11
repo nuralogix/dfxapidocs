@@ -72,14 +72,15 @@ API. We recommend leveraging this transport for platforms that need performance
 and real-time response.
 
 In order to open a connection to the WebSocket service an `Authorization` header
-must be supplied. Upon connecting all exchanges with the server must follow a
-consistent request pattern described below.
+must be supplied. Also during connection creation, the string `"json"` needs to
+be passed as the WebSocket protocol to the server which indicates to the server
+that the client's payloads will be JSON. Upon connecting, all exchanges with the
+server must follow a consistent request pattern described below.
 
 Service calls to the WebSocket service use action identifiers and request IDs.
-The body of the request has to be a serialized
-[Protocol Buffer](https://developers.google.com/protocol-buffers/). Protobuf
-data over WebSockets requires consuming the proto definition files that comes
-with SDK distribution.
+The body of the request has to be JSON with the same structure as the request of
+the corresponding REST endpoint with one difference - URL path and query
+parameters (discussed below.)
 
 In order to maintain the connection with the server, you must implement proper
 ping/pong heartbeats as required by the WebSocket standard specification. Aside
@@ -137,7 +138,41 @@ interfere with other concurrent connections using the same token. Request
 identifiers are not stored, so reusing them is possible however not recommended.
 
 The remaining bytes of the payload represents the full body of your request.
-For protocol buffers, send the buffer representing the payload.
+Request body is similar to REST API request body documented for each endpoint.
+URL path parameters must be passed via the `"Params"` key in the request
+JSON and URL query parameters via the `"Query"` key. Their values should be JSON
+objects whose keys are URL path / query parameter names and values are the
+corresponding path / query parameter's values.
+
+For example, for the endpoint <a href="/#reference/0/organizations/delete-partner-measurement">`Delete Partner Measurements`</a>
+(url: `/organizations/{ID}/partners/{PartnerID}/measurements`):
+
+```
+{
+    "Params": {
+        "ID": "organization_id",
+        "PartnerID": "partner_id"
+    },
+    "Query": {},
+}
+```
+
+In this example, path parameters `ID` and `PartnerID` are specified in `Params`
+and endpoint does not require body parameters.
+
+Another example, for the endpoint <a href="/#reference/0/studies/update">`update study`</a>
+(url: `/studies/{ID}`):
+
+```
+{
+    "Params": {"ID": "study_id"},
+    "Query": {},
+    "Name": "Study Type Sample",
+    "StatusID": "INACTIVE",
+    "Description": "New description goes here.",
+    "Config": {}
+}
+```
 
 ## 2.3 Receiving Data
 
@@ -149,8 +184,8 @@ Buffer( [ string:10 ][ string:3 ][ string/buffer ] )
 ```
 
 The first 10 bytes are the request identifier, the second 3 bytes are an HTTP
-status identifier and the remaining bytes are the response body as a string or
-Protobuf.
+status identifier and the remaining bytes are the response body as JSON which
+is similar to REST API response documented for each endpoint.
 
 When implementing a request/response structure, the client needs to manage
 requests in memory and await the servers response. The server will always
@@ -173,8 +208,9 @@ in the library. For example `PUT /users` is accessible via `Users.create`.
 
 An important difference in the call methods is translating query string and
 parameters that would typically be sent via the REST service to the WebSocket
-payloads. Outlined below are added as properties when making a request payload
-to `Meta.retrieveByType`:
+payloads. As explained earlier in Section 2.2, please use the `"Params"` and
+`"Query"` keys in the request. For example, for the `Meta.retrieveByType`
+endpoint:
 
 ```
 {
@@ -196,38 +232,6 @@ request.
 
 Error messages are transported in turn in similar object formats as listed
 below. The WebSocket interface also follow this pattern.
-
-Note: Many endpoints within DFX use arrays in the root of the payload.
-Unfortunately Protobufs do not support rooted arrays, hence the value needs to
-be wrapped in an object. The DFX API looks for the `Values` property in a
-payload and handles the containing array as a root array. The following is an
-example of a request to `Groups.addUsers`:
-
-REST request example:
-
-```
-[
-    "7ab8bee7-808c-4123-9811-ef85adb8c77f",
-    "7ab8bee7-808c-4123-9811-ef85adb8c75f",
-    "7ab8bee7-808c-4123-9811-ef85adb8c71f",
-    "7ab8bee7-808c-4123-9811-ef85adb8c72f",
-    "7ab8bee7-808c-4123-9811-ef85adb8c77f"
-]
-```
-
-Protobuf wrapped example of the same payload:
-
-```
-{
-    "Values": [
-        "7ab8bee7-808c-4123-9811-ef85adb8c77f",
-        "7ab8bee7-808c-4123-9811-ef85adb8c75f",
-        "7ab8bee7-808c-4123-9811-ef85adb8c71f",
-        "7ab8bee7-808c-4123-9811-ef85adb8c72f",
-        "7ab8bee7-808c-4123-9811-ef85adb8c77f"
-    ]
-}
-```
 
 # 3.1. REST Header Response Codes
 
@@ -260,7 +264,7 @@ Protobuf wrapped example of the same payload:
 | Transport Type       | Port |
 | -------------------- | ---- |
 | REST                 | 443  |
-| WebSocket + Protobuf | 443  |
+| WebSocket + JSON     | 443  |
 
 # 3.4. Endpoint Error Codes
 
@@ -411,10 +415,10 @@ mapping as they may be outlined only for internal use.
 | Devices       | 906      | GET     | <a href="/#reference/0/devices/list">`list`</a>                                                                       | /devices                                              |
 | Devices       | 907      | DELETE  | <a href="/#reference/0/devices/delete-device-measurement">`Delete device Measurement`</a>                             | /devices/{ID}/measurements                            |
 | Devices       | 908      | GET     | <a href="/#reference/0/devices/retrieve-license-id">`Retrieve license ID`</a>                                         | /devices/license                                      |
-| Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/retrieve-anura-license">`listOrgLicenses`                                             | /licenses/organization                                |
-| Auths         | 2300     | PATCH   | <a href="/#reference/0/auths/users/reset">`Request to send reset password link to user's email`                       | /auths/users/reset                                    |
-| Auths         | 2303     | POST    | <a href="/#reference/0/auths/users/code/">`Request login code`                                                        | /auths/renew                                          |
-| Auths         | 2304     | POST    | <a href="/#reference/0/auths/renew">`Renew access and refresh token pair`                                             | /auths/renew                                          |
+| Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/retrieve-anura-license">`listOrgLicenses`</a>                                         | /licenses/organization                                |
+| Auths         | 2300     | PATCH   | <a href="/#reference/0/auths/users/reset">`Request to send reset password link to user's email`</a>                   | /auths/users/reset                                    |
+| Auths         | 2303     | POST    | <a href="/#reference/0/auths/users/code/">`Request login code`</a>                                                    | /auths/renew                                          |
+| Auths         | 2304     | POST    | <a href="/#reference/0/auths/renew">`Renew access and refresh token pair`</a>                                         | /auths/renew                                          |
 
 # 4. Tokens
 
@@ -1496,7 +1500,7 @@ Measurements are individual one-time captures of blood flow data. A single
 measurement record could represent multiple models of data analysis,
 hence this data structure supports lookup parameters to filter them.
 
-For consumers using the WS Proto transport method, extra options for streaming
+For consumers using the WebSocket transport method, extra options for streaming
 live results are available. The detailed explanation of streaming implementation
 will be added later.
 
@@ -1572,10 +1576,8 @@ follow the `CHUNK::ACTION` format.
 
 `Payload` is binary data that can currently only be obtained by using our SDK.
 
-If you are using REST transport, the `Payload` (binary content) field must be
-**base64-encoded**. If you are using Websockets, the binary payload is just a
-regular byte array created using Protobuf. (`Buffer` object in Javascript,
-`Bytes` object in Python, `byte[]` in C/C++ etc.)
+For both the REST and WebSocket transports, the `Payload` (binary content)
+field must be **base64-encoded**.
 
 **Note:**: This endpoint is a subject to request throttling, you must not submit
 more data than can be obtained in real time. i.e., do not send more than five
@@ -1780,8 +1782,6 @@ specified request identifier.
 
 The results subscribership will automatically close on disconnection, completion of
 a measurement. You can resubscribe for longer measurements if necessary.
-
-Please review the `dfx-deps` proto definitions for further details on its use.
 
 The size `RequestID` must be between 0 and 15.
 
