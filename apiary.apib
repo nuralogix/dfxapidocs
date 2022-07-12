@@ -1649,13 +1649,13 @@ results of the measurements are captured and only displayed for the current
 application providers token designator. Each record has a status representing
 its cycle in the system:
 
-|Status Message|Description                                                  |
-|--------------|------------------------------------------------------------ |
-| CAPTURING    | A new record was created and results are being received.    |
-| PROCESSING   | Capture is complete and the record is processing.           |
-| COMPLETE     | The analysis is complete and ready for consumption.         |
-| ERROR        | An error occurred during processing.                        |
-| INCOMPLETE   | Capturing process returned as incomplete/not enough data.   |
+|Status Message |Description                                                                                                                  |
+|---------------|---------------------------------------------------------------------------------------------------------------------------- |
+| IN_PROGRESS   | A new measurement was created and API is waiting for payloads from the client.                                              |
+| COMPLETE      | All signals were computed successfully and are ready for consumption.                                                       |
+| ERROR         | An error occurred that caused a failure in processing the measurement entirely.                                             |
+| INACTIVE      | Measurement was cancelled due to a new measurement being created with the same device ID.                                   |
+| PARTIAL       | One or more signal(s) failed to be computed due to various reasons, but the rest of the signals were computed successfully. |
 
 + Parameters
     + Limit (integer, optional) - Number of measurement records to return.
