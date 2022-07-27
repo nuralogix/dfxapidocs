@@ -2842,8 +2842,8 @@ displays the amount of measurements captured in it to date.
 
 Retrieves a study's binary config data that has to be used to initialize
 the DFX SDK Factory object. Get the SDKID parameter by calling GetSDKId on
-the DFX SDK Factory object. A response of 304 means that existing file in hand
-is up to date.
+the DFX SDK Factory object. SDKID field is optional field in request body. If SDKID is not passed, the "default"
+config data will be returned.
 
 + Request (application/json)
 
@@ -2856,10 +2856,7 @@ is up to date.
             {
                 "StudyID": "e2e3c2aa-e428-45a3-b28b-27f053a5676",
                 "SDKID": "4.4.1,1.4,Windows,AMD64",
-                "MD5Hash": "ca08cb5c01a207b4a43e9ad404adcc9a",
             }
-
-+ Response 304
 
 + Response 200 (application/json)
 
