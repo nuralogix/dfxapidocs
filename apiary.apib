@@ -372,15 +372,6 @@ mapping as they may be outlined only for internal use.
 | Measurements  | 500      | GET     | <a href="/#reference/0/measurements/retrieve">`retrieve`</a>                                                          | /measurements/{ID}                                    |
 | Measurements  | 501      | GET     | <a href="/#reference/0/measurements/list">`list`</a>                                                                  | /measurements                                         |
 | Measurements  | 507      | DELETE  | <a href="/#reference/0/measurements/delete">`delete`</a>                                                              | /measurements/{ID}                                    |
-| Groups        | 600      | GET     | <a href="/#reference/0/groups/list">`list`</a>                                                                        | /groups                                               |
-| Groups        | 601      | GET     | <a href="/#reference/0/groups/list">`types`</a>                                                                       | /groups/types                                         |
-| Groups        | 602      | GET     | <a href="/#reference/0/groups/retrieve">`retrieve`</a>                                                                | /groups/{ID}                                          |
-| Groups        | 603      | GET     | <a href="/#reference/0/groups/list-users">`getUsers`</a>                                                              | /groups/{ID}/users                                    |
-| Groups        | 604      | POST    | <a href="/#reference/0/groups/create">`create`</a>                                                                    | /groups                                               |
-| Groups        | 605      | POST    | <a href="/#reference/0/groups/add-users">`addUsers`</a>                                                               | /groups/{ID}/users                                    |
-| Groups        | 606      | PATCH   | <a href="/#reference/0/groups/update">`update`</a>                                                                    | /groups/{ID}                                          |
-| Groups        | 607      | DELETE  | <a href="/#reference/0/groups/remove">`remove`</a>                                                                    | /groups/{ID}                                          |
-| Groups        | 608      | DELETE  | <a href="/#reference/0/groups/remove-users">`removeUsers`<a>                                                          | /groups/{ID}/users                                    |
 | Organizations | 700      | GET     | <a href="/#reference/0/organizations/retrieve">`retrieve`</a>                                                         | /organizations                                        |
 | Organizations | 702      | GET     | <a href="/#reference/0/organizations/users">`users`</a>                                                               | /organizations/users                                  |
 | Organizations | 703      | GET     | <a href="/#reference/0/organizations/list-measurements">`listMeasurements`</a>                                        | /organizations/measurements                           |
@@ -415,7 +406,8 @@ mapping as they may be outlined only for internal use.
 | Devices       | 906      | GET     | <a href="/#reference/0/devices/list">`list`</a>                                                                       | /devices                                              |
 | Devices       | 907      | DELETE  | <a href="/#reference/0/devices/delete-device-measurement">`Delete device Measurement`</a>                             | /devices/{ID}/measurements                            |
 | Devices       | 908      | GET     | <a href="/#reference/0/devices/retrieve-license-id">`Retrieve license ID`</a>                                         | /devices/license                                      |
-| Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/retrieve-anura-license">`listOrgLicenses`</a>                                         | /licenses/organization                                |
+| Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/get-organization-licenses">`listOrgLicenses`</a>                                      | /licenses/organization                                |
+| Licenses      | 1411     | GET     | <a href="/#reference/0/licenses/get-organization-license">`retrieveOrgLicense`</a>                                    | /licenses/organization/{ID}                           |
 | Auths         | 2300     | PATCH   | <a href="/#reference/0/auths/users/reset">`Request to send reset password link to user's email`</a>                   | /auths/users/reset                                    |
 | Auths         | 2303     | POST    | <a href="/#reference/0/auths/users/code/">`Request login code`</a>                                                    | /auths/renew                                          |
 | Auths         | 2304     | POST    | <a href="/#reference/0/auths/renew">`Renew access and refresh token pair`</a>                                         | /auths/renew                                          |
@@ -670,15 +662,18 @@ An endpoint that checks validity of your Token and returns its encoded info.
 + Response 200 (application/json)
 
         {
-            "OrganizationID": "uuid",
-            "ID": "uuid",
-            "Type": "User",
-            "DeviceID": "uuid",
+            "OrganizationID": "d17e0fcd-e65d-45a8-af7a-6285d503f9d8",
+            "ID": "42187658-c5b4-4267-afe4-3f764557578f",
+            "Type": "Device",
+            "DeviceID": "42187658-c5b4-4267-afe4-3f764557578f",
+            "SessionGen": 0,
             "Region": "na-east",
-            "iat": 1570735844,
+            "exp": 1714876221,
+            "iat": 1658501372,
             "iss": "urn:deepaffex",
-            "RoleID": "BASIC_DEVICE",
-            "ActiveLicense": "boolean (indicates if token allows to create Measurements)"
+            "RoleID": "NURA_APP_DEVICE",
+            "ActiveLicense": true,
+            "RemainingMeasurement": 997
         }
 
 + Response 401 (application/json)
@@ -2720,22 +2715,22 @@ Retrieves a list of study templates that exist in a particular organization.
 
         [
             {
-                "ID": "NURALOGIX_GENERIC",
+                "ID": "76f59b35-0e5f-4d19-8563-6891g5091d1e",
                 "StatusID": "ACTIVE",
-                "Name": "Generic Study",
-                "Description": "Study that can be used for all purposes",
-                "BundleID": null,
+                "Name": "ANURA_AGW",
+                "Description": "Anura Template with AGW points",
                 "Config": {},
                 "StudyTypeID": "GENERAL",
+                "Created": 1648564820,
                 "Signals": [
-                    "BP_SYSTOLIC",
-                    "BP_DIASTOLIC",
-                    "HEART_RATE",
-                    "MENTAL_STRESS_INDEX",
-                    "SNR",
-                    "STRESS_SCORE"
+                "BP_SYSTOLIC",
+                "BP_DIASTOLIC",
+                "HEART_RATE",
+                "MENTAL_STRESS_INDEX",
+                "SNR",
+                "STRESS_SCORE"
                 ],
-                "Created": 1491465784
+                "RemainingMeasurement": null
             }
         ]
 
@@ -3221,27 +3216,62 @@ List licenses available to your User / Organization.
 
         [
             {
-                "ID": "dfd7f771-b49c-4d41-9cb2-139c50000",
-                "LicenseType": "DFX",
+                "Created": 1651087621,
+                "ID": "e42d8197-c0ad-4ccd-8cfa-802517328264",
                 "StatusID": "ACTIVE",
-                "Expiration": null,
-                "Key": "key",
+                "Expiration": "2023-04-27T19:26:51.000Z",
                 "MaxDevices": null,
-                "Created": "1594911272",
-                "DeviceRegistrations": 8,
-                "TotalCount": 2
+                "OrganizationID": "d17e0fcd-e65d-45a8-af7a-6285d503f9d8",
+                "DeviceRegistrations": 20,
+                "LicenseTypeID": "KIOSK",
+                "LicenseType": "KIOSK",
+                "Key": "ee560c18-cd8f-4b62-b28c-9dd2cddf9dda",
+                "SDKPlatforms": [],
+                "Username": null,
+                "TotalCount": 9
             },
             {
-                "ID": "cf102c42-f2ba-4e87-a954-e449de6f1rtr",
-                "LicenseType": "DFX-DESKTOP",
-                "StatusID": "ACTIVE",
-                "Expiration": null,
-                "Key": "key",
+                "Created": 1650907351,
+                "ID": "a8d9772e-a5a5-4020-97cc-607461d4c47e",
+                "StatusID": "EXPIRED",
+                "Expiration": "2022-05-25T17:21:33.000Z",
                 "MaxDevices": null,
-                "Created": "1590534731",
-                "DeviceRegistrations": 114
+                "OrganizationID": "d17e0fcd-e65d-45a8-af7a-6285d503f9d8",
+                "DeviceRegistrations": 0,
+                "LicenseTypeID": "MOBILE",
+                "LicenseType": "MOBILE",
+                "Key": "d5c4ef50-a584-4770-8363-7b7726214a9e",
+                "SDKPlatforms": [],
+                "Username": null
             }
         ]
+
+
+### Get Organization License [GET /licenses/organization/{ID}]
+
+Retrieve a single organization license specified by ID.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+        {
+            "Created": 1651087621,
+            "ID": "e42d8197-c0ad-4ccd-8cfa-802519328264",
+            "StatusID": "ACTIVE",
+            "Expiration": "2023-04-27T19:26:51.000Z",
+            "Key": "ee560c18-cd8f-4b62-b28c-9dd2cddf9fda",
+            "MaxDevices": null,
+            "LicenseType": "KIOSK",
+            "LicenseTypeID": "KIOSK",
+            "DeviceRegistrations": 20,
+            "SDKPlatforms": []
+        }
+
 
 ## Auths [/auths]
 
