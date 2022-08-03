@@ -43,7 +43,7 @@ License, if it's an `SDK_DEVICE`, then Step 3 is mandatory.
 <a href="/#introduction/3.5.-authentication-headers">for authentication.</a>
 
 3. (Optional) <a href="/#reference/0/users/login">Authenticate as a User.</a>
-You will receive a User Token Pair(a user token and a one-time refresh token) 
+You will receive a User Token Pair (a user token and a one-time refresh token) 
 back, which will upgrade the Device Token with
 your account information. This will improve measurement traceability down the
 road. Replace the Device Token in Step 2 with the newly obtained User Token for
@@ -454,7 +454,7 @@ to most non-measurement related endpoints, for example, study management.
 <a href="/#reference/0/users/login">`Users.Login`</a> endpoint.
 Before obtaining this token, it's necessary to obtain a device
 token first. This token contains a device ID and can be used to carry out
-the measurements. It  is required to associate measurements with a particular
+the measurements. It is required to associate measurements with a particular
 user account. This token can also be used for non-measurement endpoints
 exactly the same way as the first type.
 
@@ -470,7 +470,7 @@ the Device Token or the User Token (or if the User Token expires) call the
 The client needs to send the matching pair to exchange
 it with a new pair. The old pair will not be valid after calling the
 <a href="/#reference/0/auths/renew">`Auths.Renew`</a> endpoint. 
-It is used to ensure that  devices can "roam" properly and improves
+This is used to ensure that  devices can "roam" properly and improves
 token security.
 
 
@@ -785,7 +785,7 @@ account. The rest of the fields are optional.
 ### Login [POST /users/auth]
 
 Logs a user into a new session using Email, Password and optionally an MFAToken
-and responds with a User Token Pair(a User Token and a One-Time Refresh Token).
+and responds with a User Token Pair (a User Token and a One-Time Refresh Token).
 The User Token must be passed with every subsequent API call to the server.
 
 **Note:** you need to obtain a Device Token Pair first to be able to login through
@@ -1536,7 +1536,7 @@ endpoint to obtain a *User Token Pair*, which can be used to take Measurements
 as well.
 
 **Important:**: If your License Type is `SDK_DEVICE`, you must login and obtain
-a User Token pair as this License Type only allows to perform a login operation.
+a User Token Pair as this License Type only allows to perform a login operation.
 
 ### Create [POST /measurements]
 
@@ -2100,7 +2100,7 @@ logged in as a DFX_LEAD,  DFX_ORG_ADMIN
 
 ### Register License [POST /organizations/licenses]
 
-Allows consumers to exchange a license key for a device token pair(a Device token 
+Allows consumers to exchange a license key for a Device Token Pair (a Device token 
 and a One-Time Refresh Token).
 
 This endpoint is accessible publically to all consuming clients. License keys
@@ -2121,7 +2121,7 @@ communication with DeepAffex. When set, the server will compare the token value
 with HTTP request's `Referer` header and reject the request if those don't
 match.
 
-**Note:** Please make sure to store the obtained tokens locally as most
+**Note:** Please make sure to store the obtained tokens securely as most
 Licenses (e.g. Trial) allow for a limited number of registered Devices. To
 unregister a Device and get back one license, call the
 <a href="/#reference/0/organizations/unregister-license">Unregister License</a>
@@ -3348,7 +3348,7 @@ Renews user/device token and refresh token. When you register a license or login
 with user's credentials, a pair of tokens (a Device or User Token and a One-Time
 Refresh Token) is sent back. The client needs to send the matching pair to
 exchange it with a new pair. The old pair will not be valid after calling this 
-endpoint. Refresh Token is only needed to be used when calling
+endpoint. Refresh Token is only used when calling
 the [`Auths.Renew`](https://dfxapiversion10.docs.apiary.io/#reference/0/auths/renew)
 endpoint.
 
