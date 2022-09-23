@@ -35,16 +35,19 @@ Follow these steps to take a test Measurement:
 1. Make a request to 
 <a href="/#reference/0/organizations/register-license">Register License</a>
 endpoint. You only need to do this once per active Device. The response will
-contain a Device Token - save it locally. Check the returned `RoleID` of your
-License, if it's `SDK_DEVICE`, then Step 3 is mandatory.
+contain a Device Token Pair (a device token and a one-time refresh token)- save
+these locally. Check the returned `RoleID` of your
+License, if it's an `SDK_DEVICE`, then Step 3 is mandatory.
 
-2. For all consecutive API requests send the obtained Token with request headers
+2. For all subsequent API requests send the obtained device token with the request headers
 <a href="/#introduction/3.5.-authentication-headers">for authentication.</a>
 
 3. (Optional) <a href="/#reference/0/users/login">Authenticate as a User.</a>
-You will receive a User Token back, which will upgrade the Device Token with
+You will receive a User Token Pair (a user token and a one-time refresh token) 
+back, which will upgrade the Device Token with
 your account information. This will improve measurement traceability down the
-road. Replace the Device Token in Step 2 with the newly obtained User Token.
+road. Replace the Device Token in Step 2 with the newly obtained User Token for
+subsequent API calls.
 
 4. <a href="/#reference/0/measurements/create">Create new Measurement,</a> save
 the returned Measurement `ID` locally.
@@ -56,7 +59,7 @@ using a WebSocket connection.
 6. Start TOI data extraction using the DeepAffex SDK and obtain a Payload.
 
 7. Once you have collected enough data,
-<a href="/#reference/0/measurements/add-data">send a data chunk in.</a>
+<a href="/#reference/0/measurements/add-data">send a data chunk.</a>
 
 8. Continue sending chunks until your measurement is complete. Make sure to mark
 the last chunk with `LAST::PROCESS` action.
@@ -326,8 +329,8 @@ If the ActiveLicense field in the response is false or if the API returns one of
 the following errors: `INVALID_TOKEN`, `LICENSE_EXPIRED`, `INACTIVE_LICENSE` or
 `INACTIVE_DEVICE`, then the client must re-register the license.
 
-* Please use the <a href="/#reference/0/auths/renew">Auths.Renew</a> endpoint
-refresh your token.
+* Please use the <a href="/#reference/0/auths/renew">Auths.Renew</a> endpoint to
+refresh your tokens.
 
 # 3.6. Endpoint Summary
 
@@ -433,7 +436,7 @@ access levels it has. The token policies control every access to the API.
 ## 4.1. Device Tokens
 
 A device token usually represents a single device, such as the Anura
-application. A device token is permanent and provides access to endpoints that
+application. A device token provides access to endpoints that
 allow for device-specific feature facilities i.e. device check-in. Obtaining a
 Device token is mandatory for any Measurement related activities.
 
@@ -442,14 +445,33 @@ Device Token is obtained by
 
 ## 4.2. User Tokens
 
-User tokens provide access to all libraries that are not `Measurements`.
+A *user token* has the following two variations:
+* *Non-measurement related user token* - This is obtained using the
+<a href="/#reference/0/organizations/login">`Organizations.Login`</a>
+endpoint. This token doesn't contain a device ID and provides access
+to most non-measurement related endpoints, for example, study management.
+* *Measurement related user token* - This is obtained using the
+<a href="/#reference/0/users/login">`Users.Login`</a> endpoint.
+Before obtaining this token, it's necessary to obtain a device
+token first. This token contains a device ID and can be used to carry out
+the measurements. It is required to associate measurements with a particular
+user account. This token can also be used for non-measurement endpoints
+exactly the same way as the first type.
 
-User Token is obtained by logging in:
-<a href="/#reference/0/users/login">Method 1</a>,
-<a href="/#reference/0/organizations/login">Method 2</a>.
+## 4.3. One-Time Refresh Token (OTRT)
 
-To take Measurements associated with your User account - login using
-**Method 1** and submit the obtained `Token` for authentication.
+This token is only needed to be used when calling the 
+<a href="/#reference/0/auths/renew">`Auths.Renew`</a> 
+endpoint. When you register a license or login with the user's credentials, a pair
+of tokens (a Device or User Token and a One-Time Refresh Token) is sent back. 
+To bind a new IP and a new [user-agent](https://en.wikipedia.org/wiki/User_agent) to
+the Device Token or the User Token (or if the User Token expires) call the
+<a href="/#reference/0/auths/renew">`Auths.Renew`</a>endpoint with the OTRT.
+The client needs to send the matching pair to exchange
+it with a new pair. The old pair will not be valid after calling the
+<a href="/#reference/0/auths/renew">`Auths.Renew`</a> endpoint. 
+This is used to ensure that  devices can "roam" properly and improves
+token security.
 
 
 ## General [/]
@@ -469,7 +491,7 @@ Possible `Status` codes include:
 | LATENCY        | API is experience latency or a general slowdown |
 
 Also present in the response are `Region` - the location of the API by cluster
-and `AllowAnonymous` - a boolean, which when `false` means that user login (and
+and `AllowAnonymous` - a boolean, which when `false` means that a user login (and
 thus a user token) is *required* for making measurements.
 
 + Response 200 (application/json)
@@ -659,7 +681,7 @@ Returns a list of system-wide accepted Mime types and their IDs.
 
 ### Verify Token [GET /auth]
 
-An endpoint that checks validity of your Token and returns its encoded info.
+An endpoint that checks the validity of your Token and returns its encoded info.
 
 + Request (application/json)
 
@@ -763,10 +785,10 @@ account. The rest of the fields are optional.
 ### Login [POST /users/auth]
 
 Logs a user into a new session using Email, Password and optionally an MFAToken
-and responds with a User Token. The Token must be passed to every subsequent
-API call to the server.
+and responds with a User Token Pair (a User Token and a One-Time Refresh Token).
+The User Token must be passed with every subsequent API call to the server.
 
-**Note:** you need to obtain a Device Token first to be able to login through
+**Note:** you need to obtain a Device Token Pair first to be able to login through
 this endpoint.
 
 **Note:** MFAToken token is mandatory when Multi-factor authentication is
@@ -851,7 +873,7 @@ this code in `loginWithCode` endpoint to obtain `UserToken`.
 ### Login With Phone Code [POST /users/auth/code]
 
 Use previously requested 6-digit code to login into a new session and obtain
-`UserToken`.
+a `User Token Pair`.
 
 + Request (application/json)
 
@@ -1507,14 +1529,14 @@ will be added later.
 **Note:**: A valid License is required in order to create Measurements and
 submit data chunks for processing. Please make sure to call
 <a href="/#reference/0/organizations/register-license">Register License</a>
-endpoint first to receive a *Device Token* that grants access to these
+endpoint first to receive a *Device Token Pair* that grants access to these
 functions. Next, in order to have your user information associated with the
 measurements, you can use <a href="/#reference/0/users/login">User Login</a>
-endpoint to obtain a *User Token*, which can be used to take Measurements as
-well.
+endpoint to obtain a *User Token Pair*, which can be used to take Measurements
+as well.
 
 **Important:**: If your License Type is `SDK_DEVICE`, you must login and obtain
-a User Token as this License Type only allows to perform a login operation.
+a User Token Pair as this License Type only allows to perform a login operation.
 
 ### Create [POST /measurements]
 
@@ -1646,7 +1668,7 @@ provided in error message.
 
 Provides a historical list of measurements captured by the API store. The
 results of the measurements are captured and only displayed for the current
-application providers token designator. Each record has a status representing
+application provider's token designator. Each record has a status representing
 its cycle in the system:
 
 |Status Message |Description                                                                                                                  |
@@ -2078,13 +2100,14 @@ logged in as a DFX_LEAD,  DFX_ORG_ADMIN
 
 ### Register License [POST /organizations/licenses]
 
-Allows consumers to exchange a license key for a device token.
+Allows consumers to exchange a license key for a Device Token Pair (a Device token 
+and a One-Time Refresh Token).
 
 This endpoint is accessible publically to all consuming clients. License keys
 are mapped against an organization. Upon submitting a registration key and
 relevant information associated with the device to be registered, DFX API will
-respond with a referencing DeviceID and a token for future device-specific API
-requests. The resulting token is a _Device Token_.
+respond with a referencing DeviceID and a token pair for future device-specific API
+requests. A _Device Token_ and a _One-Time Refresh Token_ are returned.
 
 The longevity and allowed origins of the token can be controlled by
 `TokenExpiresIn` and `TokenSubject` optional parameters. `TokenExpiresIn`
@@ -2098,7 +2121,7 @@ communication with DeepAffex. When set, the server will compare the token value
 with HTTP request's `Referer` header and reject the request if those don't
 match.
 
-**Note:** Please make sure to store the obtained token locally as most
+**Note:** Please make sure to store the obtained tokens securely as most
 Licenses (e.g. Trial) allow for a limited number of registered Devices. To
 unregister a Device and get back one license, call the
 <a href="/#reference/0/organizations/unregister-license">Unregister License</a>
@@ -2142,7 +2165,8 @@ endpoint with your `Device Token`.
 
 ### Unregister License [DELETE /organizations/licenses]
 
-Send your `Device Token` as the Authorization header to decommission a registered device. Note that this does not delete the Device.
+Send your `Device Token` as the Authorization header to decommission a registered
+device. Note that this does not delete the Device.
 
 
 + Request (application/json)
@@ -2540,9 +2564,9 @@ Accessible only by users with Admin role.
 
 ### Login [POST /organizations/auth]
 
-Login and obtain User Token.
+Login and obtain a User Token Pair.
 
-**Note:** Token obtained from this endpoint does not allow you to take
+**Note:** User Token obtained from this endpoint does not allow you to take
 Measurements and is intended for viewing purposes only.
 
 **Note:** `MFAToken` parameter is required only when 2FA authentication is
@@ -3317,9 +3341,13 @@ Request to send login code.
 
 ### Renew [POST /auths/renew]
 
-Renew user/device access and refresh token. When you register a license or login with user's credentials, a pair
-of Token and RefreshToken is sent to a client. The client needs to send the matching pair to exchange it
-with a new pair. The old pair will not be valid after calling this endpoint. RefreshToken is one-time use.
+Renews user/device token and refresh token. When you register a license or login
+with user's credentials, a pair of tokens (a Device or User Token and a One-Time
+Refresh Token) is sent back. The client needs to send the matching pair to
+exchange it with a new pair. The old pair will not be valid after calling this 
+endpoint. Refresh Token is only used when calling
+the [`Auths.Renew`](https://dfxapiversion10.docs.apiary.io/#reference/0/auths/renew)
+endpoint.
 
 + Request (application/json)
 
