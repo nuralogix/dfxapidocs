@@ -1734,9 +1734,11 @@ its cycle in the system:
 
 ### Retrieve [GET /measurements/{ID}]
 
-Returns the results of a measurement request specified by the UUID
-in the endpoint request. This payload will change according to the
-different requested signals.
+Returns the full results of a measurement, and results are only 
+displayed for the current application provider's token designator. 
+`Results` in response refer to the successful point signals, `Errors` in 
+response refer to failed point signals, this will change according to 
+the different requested signals specified by Study Template.
 
 + Parameters
     + ID (string) - Requested measurement UUID.
@@ -1769,6 +1771,7 @@ different requested signals.
             "Region": "na-east",
             "PartnerID": null,
             "Results": {},
+            "Errors": {},
             "SignalNames": {},
             "SignalDescriptions": {},
             "SignalConfig": {},
@@ -2208,7 +2211,7 @@ logo
 Similar to <a href="/#reference/0/measurements/list">Measurements --> List</a>
 but retrieves all measurements across an Organization.
 
-Accessible by users with Researcher or Admin role.
+Accessible by users with Admin, Lead or Researcher role.
 
 + Parameters
     + Limit (integer, optional) - Number of measurement records to return.
@@ -2269,7 +2272,7 @@ Accessible by users with Researcher or Admin role.
 Similar to <a href="/#reference/0/measurements/retrieve">Measurements --> Retrieve</a>
 but retrieves a measurement across the Organization.
 
-Accessible by users with Researcher or Admin role.
+Accessible by users with Admin, Lead or Researcher role.
 
 + Parameters
     + ID (string) - Requested measurement UUID.
@@ -2300,6 +2303,7 @@ Accessible by users with Researcher or Admin role.
             "Region": "na-east",
             "PartnerID": null,
             "Results": {},
+            "Errors": {},
             "SignalNames": {},
             "SignalDescriptions": {},
             "SignalConfig": {},
