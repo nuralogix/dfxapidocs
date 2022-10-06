@@ -1662,8 +1662,8 @@ provided in error message.
 ### List [GET /measurements{?Limit,Offset,Date,EndDate,UserProfileID,UserProfileName,StudyID,StatusID,PartnerID}]
 
 Provides a historical list of measurements captured by the API store. The
-results of the measurements are captured and only displayed for the current
-application provider's token designator. Each record has a status representing
+results of the measurements are captured and only displayed for the measurements
+made by the token used in the header of this call. Each record has a status representing
 its cycle in the system:
 
 |Status Message |Description                                                                                                                  |
@@ -1734,8 +1734,8 @@ its cycle in the system:
 
 ### Retrieve [GET /measurements/{ID}]
 
-Returns the full results of a measurement, and results are only 
-displayed for the current application provider's token designator. 
+Returns the full results of a measurement, and results are only displayed 
+for the measurement made by the token used in the header of this call. 
 `Results` in response refer to the successful point signals, `Errors` in 
 response refer to failed point signals, this will change according to 
 the different requested signals specified by Study Template.
