@@ -1675,12 +1675,12 @@ its cycle in the system:
 | PARTIAL       | One or more signal(s) failed to be computed due to various reasons, but the rest of the signals were computed successfully. |
 
 + Parameters
-    + Limit (integer, optional) - Number of measurement records to return.
-        + default 50
+    + Limit (integer, optional) - The number of measurements to pull from the list.
+        + default 25
     + Offset (integer, optional) - Offset to specify the start of the count.
         + default 0
-    + Date (optional) - The date to return measurements for yyyy-mm-dd.
-    + EndDate (optional) - End date for range of measurements to receive.
+    + Date (optional) - Measurement creation start date in the format YYYY-MM-DD.
+    + EndDate (optional) - Measurement creation end date in the format YYYY-MM-DD
     + UserProfileID (string, optional) - filter by a Profile ID.
     + UserProfileName (string, optional) - filter by a Profile Name.
     + PartnerID (string, optional) - filter by Partner ID.
@@ -1699,31 +1699,35 @@ its cycle in the system:
 
         [
             {
+                "Created": 1671647325,
+                "Updated": 1671647370,
                 "ID": "28c2823b-5360-49a9-a3b9-17ac8af9587b",
                 "UserID": "ed855f12-248c-4bd9-baf9-6d847a1c431f",
-                "UserProfileID": null,
-                "UserProfileName": null,
-                "DeviceID": null,
+                "UserProfileID": "3f6ff56d-3e37-4427-b09e-dcf20377fb1a",
+                "UserProfileName": "user",
+                "DeviceID": "ad3412ef-b3ef-4426-aacf-39984f2dc213",
                 "StudyID": "bb61de8b-c64b-421c-9961-8bf4873fdef2",
-                "StatusID": "IN_PROGRESS",
+                "StatusID": "COMPLETE",
+                "PartnerID": null,
                 "DeviceVersion": null,
-                "Mode": "SURVEY",
-                "Created": 1498425108,
-                "Updated": 1498425108,
+                "Mode": "DISCRETE",
+                "Region": "na-east",
                 "TotalCount": 2
             },
             {
-                "ID": "42c1197a-5854-4ef2-88d8-0159204607a6",
+                "Created": 1671647214,
+                "Updated": 1671647258,
+                "ID": "42c1197a-5854-4ef2-88d8-0159204607a6"",
                 "UserID": "ed855f12-248c-4bd9-baf9-6d847a1c431f",
-                "UserProfileID": null,
-                "UserProfileName": null,
-                "DeviceID": null,
-                "StudyID": null,StatusID
-                "Status": "IN_PROGRESS",
+                "UserProfileID": "3f6ff56d-3e37-4427-b09e-dcf20377fb1a",
+                "UserProfileName": "user",
+                "DeviceID": "ad3412ef-b3ef-4426-aacf-39984f2dc213",
+                "StudyID": "bb61de8b-c64b-421c-9961-8bf4873fdef2",
+                "StatusID": "COMPLETE",
+                "PartnerID": null,
                 "DeviceVersion": null,
-                "Mode": "SURVEY",
-                "Created": 1498470843.82706,
-                "Updated": 1498470843.82706
+                "Mode": "DISCRETE",
+                "Region": "na-east"
             }
         ]
 
@@ -1983,24 +1987,23 @@ This call requires DFX\_ORG\_ADMIN level permissions.
         }
 
 
-### Users [GET /organizations/users{?Limit,Offset,StartDate,EndDate,Username,RoleID,Gender,StatusID}]
+### Users [GET /organizations/users{?Limit,Offset,Date,EndDate,UserName,Gender,RoleID,Region}]
 
 Retrieves a list of users in the current organization.
 
-This endpoint can filter by groups and account creation start and end dates
-to make sorting and filtering easier.
+Accessible by users with Admin, and Lead role.
 
 + Parameters
     + Limit (integer, optional) - The number of users to pull from the list.
         + default 25
     + Offset (integer, optional) - Offset of the results to start at.
         + default 0
-    + StartDate (string, optional) - Account creation start date in the format YYYY-MM-DD.
+    + Date (string, optional) - Account creation start date in the format YYYY-MM-DD.
     + EndDate (string, optional) - Account creation end date in the format YYYY-MM-DD.
-    + Username (string, optional) - filter by user's email.
-    + RoleID (string, optional) - filter by user's Role.
-    + Gender (string, optional) - filter by user's gender.
-    + StatusID (string, optional) - filter by user's Status.
+    + UserName (string, optional) - filter by User's email address.
+    + Gender (string, optional) - filter by User's Gender (i.e. 0-male, 1-female, 2-other).
+    + RoleID (string, optional) - filter by user's Role ID.
+    + Region (string, optional) - filter by Region (e.g. na-east, eu-central, sa-east, as-east, as-hk. For details, please refer to https://docs.deepaffex.ai/guide/cloud/2-1_regions.html#geographic-location-and-associated-routing-rules).
 
 + Request (application/json)
 
@@ -2011,35 +2014,39 @@ to make sorting and filtering easier.
 + Response 200 (application/json)
 
         [
-            {
-                "Gender": "other",
-                "DateOfBirth": null,
-                "Created": 1604084692,
-                "Updated": 1604084692,
-                "ID": "7159c503-8ac3-45e5-b6aa",
-                "FirstName": "John",
-                "LastName": "Appleseed",
-                "Email": "john3@example.com",
-                "PhoneNumber": null,
-                "RoleID": "NURA_APP_USER",
-                "LoginMethod": "Email",
-                "Region": "na-east",
-                "TotalCount": 88
-             },
-            {
-                "Gender": "other",
-                "DateOfBirth": null,
-                "Created": 1604084253,
-                "Updated": 1604084253,
-                "ID": "486f-b6e1-23605e4a9b4b",
-                "FirstName": "John",
-                "LastName": null,
-                "Email": "john2@example.com",
-                "PhoneNumber": null,
-                "RoleID": "NURA_APP_USER",
-                "LoginMethod": "Email",
-                "Region": "na-east"
-             }
+            {
+                "Gender": "male",
+                "DateOfBirth": null,
+                "Created": 1640875819,
+                "Updated": 1660842832,
+                "ID": "d2f46a51-af9b-49e3-86f0-82537447e8c3",
+                "FirstName": "John",
+                "LastName": "Test",
+                "Email": "john3@example.com",
+                "PhoneNumber": null,
+                "RoleID": "NURA_APP_USER",
+                "LoginMethod": "Email",
+                "Region": "na-east",
+                "PasswordSetDate": "2021-12-30T14:51:21.194Z",
+                "MFAEnabled": false,
+                "TotalCount": 88
+            },
+            {
+                "Gender": "female",
+                "DateOfBirth": null,
+                "Created": 1639666863,
+                "Updated": 1671653452,
+                "ID": "5826637c-303a-4357-9845-16e00f09c7e8",
+                "FirstName": "John",
+                "LastName": null,
+                "Email": "john2@example.com",
+                "PhoneNumber": null,
+                "RoleID": "NURA_APP_USER",
+                "LoginMethod": "Email",
+                "Region": "na-east",
+                "PasswordSetDate": "2021-12-16T15:01:03.856Z",
+                "MFAEnabled": false
+            }
         ]
 
 + Response 403 (application/json)
@@ -2215,12 +2222,12 @@ but retrieves all measurements across an Organization.
 Accessible by users with Admin, Lead or Researcher role.
 
 + Parameters
-    + Limit (integer, optional) - Number of measurement records to return.
-        + default 50
+    + Limit (integer, optional) - The number of measurements to pull from the list.
+        + default 25
     + Offset (integer, optional) - Offset to specify the start of the count.
         + default 0
-    + Date (date, optional) - The date to return measurements for yyyy-mm-dd.
-    + EndDate (date, optional) - End date for range of measurements to receive.
+    + Date (date, optional) - Measurement creation start date in the format YYYY-MM-DD.
+    + EndDate (date, optional) - Measurement creation end date in the format YYYY-MM-DD.
     + UserName (string, optional) - filter by User's email address or phone number.
     + UserProfileID (string, optional) - filter by a Profile ID.
     + UserProfileName (string, optional) - filter by a Profile Name.
@@ -2228,7 +2235,7 @@ Accessible by users with Admin, Lead or Researcher role.
     + StudyID (string, optional) - filter by Study ID.
     + StatusID (string, optional) - filter by measurement Status ID.
     + Mode (string, optional) - filter by Mode (e.g. DISCRETE).
-    + Region (string, optional) - filter by Region (e.g. na-east, eu-central, sa-east, as-east, as-hk. For details, please refer to https://docs.deepaffex.ai/guide/cloud/2-1_regions.html#geographic-location-and-associated-routing-rules)
+    + Region (string, optional) - filter by Region (e.g. na-east, eu-central, sa-east, as-east, as-hk. For details, please refer to https://docs.deepaffex.ai/guide/cloud/2-1_regions.html#geographic-location-and-associated-routing-rules).
 
     
     
@@ -2244,28 +2251,32 @@ Accessible by users with Admin, Lead or Researcher role.
 
         [
             {
+                "Created": 1671819244,
+                "Updated": 1671819282,
                 "ID": "ca88f373-b24c-4111-a21d-7948946f2178",
                 "StudyID": "c4ba9062-a183-4624-ac5a-710eff8741d2",
                 "StatusID": "COMPLETE",
                 "DeviceID": "e4fd5a6c-80bb-4035-b873-a472ef4732b2",
                 "Mode": "DISCRETE",
-                "UserName": "test@nuralogix.ai",
+                "PartnerID": null,
+                "Region": "na-east",
+                "UserName": null,
                 "UserProfileName": null,
-                "Created": 1498425108,
-                "Updated": 1498425108,
                 "TotalCount": 2
             },
             {
+                "Created": 1671807507,
+                "Updated": 1671807572,
                 "ID": "88de56e4-c17b-44e7-89ef-9e04aa399286",
                 "StudyID": "c4ba9062-a183-4624-ac5a-710eff8741d2",
-                "StatusID": "WARNING",
+                "StatusID": "COMPLETE",
                 "DeviceID": "e4fd5a6c-80bb-4035-b873-a472ef4732b2",
                 "Mode": "DISCRETE",
-                "UserName": "test1@nuralogix.ai",
+                "PartnerID": null,
+                "Region": "na-east",
+                "UserName": null,
                 "UserProfileName": null
-                "Created": 1498470843.82706,
-                "Updated": 1498470843.82706,
-            }
+                }
         ]
 
 + Response 403 (application/json)
