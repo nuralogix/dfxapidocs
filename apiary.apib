@@ -160,20 +160,19 @@ JSON and URL query parameters via the `"Query"` key. Their values should be JSON
 objects whose keys are URL path / query parameter names and values are the
 corresponding path / query parameter's values.
 
-For example, for the endpoint <a href="/#reference/0/organizations/delete-partner-measurement">`Delete Partner Measurements`</a>
-(url: `/organizations/{ID}/partners/{PartnerID}/measurements`):
+For example, for the endpoint <a href="/#reference/0/organizations/delete-user">`Delete Organization's User`</a>
+(url: `/organizations/users/{ID}`):
 
 ```
 {
     "Params": {
-        "ID": "organization_id",
-        "PartnerID": "partner_id"
+        "ID": "user_id",
     },
     "Query": {},
 }
 ```
 
-In this example, path parameters `ID` and `PartnerID` are specified in `Params`
+In this example, path parameters `ID` is specified in `Params`
 and endpoint does not require body parameters.
 
 Another example, for the endpoint <a href="/#reference/0/studies/update">`update study`</a>
@@ -369,7 +368,6 @@ mapping as they may be outlined only for internal use.
 | Users         | 213      | PATCH   | <a href="/#reference/0/users/send-account-verification-code">`verificationCode`</a>                                   | /users/verificationCode/{ID}/{OrgKey}                 |
 | Users         | 216      | GET     | <a href="/#reference/0/users/request-phone-login-code">`requestLoginCode`                                             | /users/auth/code/{OrgKey}/{PhoneNumber}               |
 | Users         | 217      | POST    | <a href="/#reference/0/users/login-with-phone-code">`loginWithCode`</a>                                               | /users/auth/code                                      |
-| Users         | 219      | DELETE  | <a href="/#reference/0/users/delete">`delete measurement`</a>                                                         | /users/{ID}/measurements                              |
 | Users         | 220      | POST    | <a href="/#reference/0/users/change-password">Change password</a>                                                     | /users/changepassword                                 |
 | Users         | 221      | POST    | <a href="/#reference/0/users/create-two-factor-authentication-secret">Create 2FA secret logged in user</a>            | /users/mfa/secret                                     |
 | Users         | 222      | POST    | <a href="/#reference/0/users/enable-two-factor-authentication-for-logged-in-user">Enable 2FA for logged in user</a>   | /users/mfa                                            |
@@ -387,7 +385,6 @@ mapping as they may be outlined only for internal use.
 | Measurements  | 510      | CONNECT | <a href="/#reference/0/measurements/subscribe-to-results">`subscribeResults`</a>                                      | /measurements/{ID}/results/                           |
 | Measurements  | 500      | GET     | <a href="/#reference/0/measurements/retrieve">`retrieve`</a>                                                          | /measurements/{ID}                                    |
 | Measurements  | 501      | GET     | <a href="/#reference/0/measurements/list">`list`</a>                                                                  | /measurements                                         |
-| Measurements  | 507      | DELETE  | <a href="/#reference/0/measurements/delete">`delete`</a>                                                              | /measurements/{ID}                                    |
 | Organizations | 700      | GET     | <a href="/#reference/0/organizations/retrieve">`retrieve`</a>                                                         | /organizations                                        |
 | Organizations | 702      | GET     | <a href="/#reference/0/organizations/users">`users`</a>                                                               | /organizations/users                                  |
 | Organizations | 703      | GET     | <a href="/#reference/0/organizations/list-measurements">`listMeasurements`</a>                                        | /organizations/measurements                           |
@@ -403,8 +400,6 @@ mapping as they may be outlined only for internal use.
 | Organizations | 715      | DELETE  | <a href="/#reference/0/organizations/delete-user">`removeUser`</a>                                                    | /organizations/users/{ID}                             |
 | Organizations | 716      | PATCH   | <a href="/#reference/0/organizations/update-profile">`updateProfile`</a>                                              | /organizations/profiles/{ID}                          |
 | Organizations | 717      | POST    | <a href="/#reference/0/organizations/login">`login`</a>                                                               | /organizations/auth                                   |
-| Organizations | 721      | DELETE  | <a href="/#reference/0/organizations/delete">`Delete Org Measurement`</a>                                             | /organizations/{ID}/measurements                      |
-| Organizations | 722      | DELETE  | <a href="/#reference/0/organizations/delete-partner-measurement">`Delete Partner Measurement`</a>                     | /organizations/{ID}/partners/{PartnerID}/measurements |
 | Studies       | 800      | GET     | <a href="/#reference/0/studies/types">`types`</a>                                                                     | /studies/types                                        |
 | Studies       | 801      | GET     | <a href="/#reference/0/studies/list-templates">`templates`</a>                                                        | /studies/templates                                    |
 | Studies       | 804      | GET     | <a href="/#reference/0/studies/retrieve">`retrieve`</a>                                                               | /studies/{ID}                                         |
@@ -413,14 +408,11 @@ mapping as they may be outlined only for internal use.
 | Studies       | 806      | POST    | <a href="/#reference/0/studies/create">`create`</a>                                                                   | /studies                                              |
 | Studies       | 807      | PATCH   | <a href="/#reference/0/studies/update">`update`</a>                                                                   | /studies/{ID}                                         |
 | Studies       | 808      | DELETE  | <a href="/#reference/0/studies/delete">`remove`</a>                                                                   | /studies/{ID}                                         |
-| Studies       | 811      | DELETE  | <a href="/#reference/0/studies/delete-study-measurement">`Delete Study Measurement`</a>                               | /studies/{ID}/measurements                            |
 | Devices       | 900      | GET     | <a href="/#reference/0/devices/types">`types`</a>                                                                     | /devices/types                                        |
 | Devices       | 902      | GET     | <a href="/#reference/0/devices/retrieve">`retrieve`</a>                                                               | /devices/{ID}                                         |
 | Devices       | 903      | POST    | <a href="/#reference/0/devices/create">`create`</a>                                                                   | /devices                                              |
 | Devices       | 904      | PATCH   | <a href="/#reference/0/devices/update">`update`</a>                                                                   | /devices/{ID}                                         |
-| Devices       | 905      | DELETE  | <a href="/#reference/0/devices/delete">`remove`</a>                                                                   | /devices/{ID}                                         |
 | Devices       | 906      | GET     | <a href="/#reference/0/devices/list">`list`</a>                                                                       | /devices                                              |
-| Devices       | 907      | DELETE  | <a href="/#reference/0/devices/delete-device-measurement">`Delete device Measurement`</a>                             | /devices/{ID}/measurements                            |
 | Devices       | 908      | GET     | <a href="/#reference/0/devices/retrieve-license-id">`Retrieve license ID`</a>                                         | /devices/license                                      |
 | Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/get-organization-licenses">`listOrgLicenses`</a>                                      | /licenses/organization                                |
 | Licenses      | 1411     | GET     | <a href="/#reference/0/licenses/get-organization-license">`retrieveOrgLicense`</a>                                    | /licenses/organization/{ID}                           |
@@ -1240,22 +1232,6 @@ with it. The account to be deleted is derived from the User Token.
         }
 
 
-### Delete [DELETE /users/{ID}/measurements]
-
-Only DFX_ORG_ADMIN has permission to delete all measurement of specific user for
-its own organization.
-
-+ Parameters
-    + ID (string) - Requested User UUID.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer <api token>
-
-+ Response 200 (application/json)
-
 ### Change Password [POST /users/changepassword]
 
 This End Point allow user to change password for already verified user
@@ -1839,23 +1815,6 @@ The size `RequestID` must be between 0 and 15.
             }
 
 + Response 200 (application/json)
-
-### Delete [DELETE /measurements/{ID}]
-
-Only DFX_ORG_ADMIN has permission to delete a specific measurment by
-measurement ID for its own organization.
-
-+ Parameters
-    + ID (string) - Requested measurement UUID.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer <api token>
-
-+ Response 200 (application/json)
-
 
 ## Organizations [/organizations]
 
@@ -2633,22 +2592,6 @@ enabled. See <a href="/#reference/0/users/create-two-factor-authentication-secre
             "Message": ""
         }
 
-### Delete [DELETE /organizations/{ID}/measurements]
-
-Only DFX_ORG_ADMIN has permission to delete all measurment for their own
-organization.
-
-+ Parameters
-    + ID (string) - Requested Organization UUID.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer <api token>
-
-+ Response 200 (application/json)
-
 ### Delete Partner Measurement [DELETE /organizations/{ID}/partners/{PartnerID}/measurements]
 
 Only DFX_ORG_ADMIN has permission to delete all measurements of specific
@@ -2986,22 +2929,6 @@ Lists all the studies created in an organization.
             },
         ]
 
-### Delete Study Measurement [DELETE /studies/{ID}/measurements]
-
-Only DFX_ORG_ADMIN has permission to delete all measuremenet of specific study
-for its own organization.
-
-+ Parameters
-    + ID (string) - Requested Study UUID.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer <api token>
-
-+ Response 200 (application/json)
-
 ## Devices [/devices]
 
 Devices can be used to record the platform by which a measurement captured was
@@ -3199,42 +3126,6 @@ Retrieves a list of existing devices in an organization.
             "Code": "RESTRICTED_ACCESS",
             "Message": ""
         }
-
-### Delete [DELETE /devices/{ID}]
-
-Deletes a device from the dataset.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer <api token>
-
-+ Response 200 (application/json)
-
-+ Response 403 (application/json)
-
-        {
-            "Code": "RESTRICTED_ACCESS",
-            "Message": ""
-        }
-
-
-### Delete device measurement [DELETE /devices/{ID}/measurements]
-
-Only DFX_ORG_ADMIN has permission to delete all measurements of a specific
-device for their own organization.
-
-+ Parameters
-    + ID (string) - Requested Device UUID.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer <api token>
-
-+ Response 200 (application/json)
 
 ### Retrieve license ID [GET /devices/license]
 
