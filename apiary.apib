@@ -1797,7 +1797,28 @@ specified request identifier.
 The results subscribership will automatically close on disconnection, completion of
 a measurement. You can resubscribe for longer measurements if necessary.
 
-The size `RequestID` must be between 0 and 15.
+The size of `RequestID` must be between 0 and 15.
+
+### Notes in real-time results
+
+Real-time results may also contain *notes* for each Point. They provide
+additional information about the computation of the signal on the Cloud. If
+present for a specific DFX Point, notes will be as a value to the `"Notes"` key
+in that point. (e.g., for `ABSI` they will be at
+`result/"Channels/"ABSI"/"Notes"`).
+
+`"Notes"` is an enum; multiple notes may be present against a single Point. They
+are described in the table below:
+
+| Note                       | Description                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| NOTE_USED_PRED_DEMOG       | User profile data was predicted for computations since user-entered data was missing |
+| NOTE_SNR_BELOW_THRESHOLD   | `SNR` was below 0.5 db; no additional signals were computed                          |
+| NOTE_FT_LIVENSSS_FAILED    | First liveness test failed                                                           |
+| NOTE_MODEL_LIVENSSS_FAILED | Second liveness test failed                                                          |
+| NOTE_MISSING_MEDICAL_INFO  | Medical history questionnaire information was not sent                               |
+| NOTE_DEGRADED_ACCURACY     | Signal computation suffered from degraded accuracy                                   |
+
 
 + Parameters
     + ID (string) - Requested measurement UUID.
