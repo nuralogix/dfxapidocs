@@ -1728,8 +1728,15 @@ its cycle in the system:
 
 ### Retrieve [GET /measurements/{ID}]
 
-Returns the full results of a measurement, and results are only displayed 
-for the measurement made by the token used in the header of this call. 
+Behavior of this endpoint depends upon the type of token used in the header.
+
+  * *Using device token* - Will return the results for the measurements made by
+the same device token as used in the header of this call.
+
+  * *Using user token* - Will return the results for the measurements made by the
+user whose credentials were used to generate the user token used in the header of
+this call.
+
 `Results` in response refer to the successful point signals, `Errors` in 
 response refer to failed point signals, this will change according to 
 the different requested signals specified by Study Template.
