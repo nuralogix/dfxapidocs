@@ -2620,23 +2620,6 @@ enabled. See <a href="/#reference/0/users/create-two-factor-authentication-secre
             "Message": ""
         }
 
-### Delete Partner Measurement [DELETE /organizations/{ID}/partners/{PartnerID}/measurements]
-
-Only DFX_ORG_ADMIN has permission to delete all measurements of specific
-`PartnerID`s for their own organization.
-
-+ Parameters
-    + ID (string) - Requested Organization UUID.
-    + PartnerID (string) - Requested PartnerID.
-
-+ Request (application/json)
-
-    + Headers
-
-            Authorization: Bearer <api token>
-
-+ Response 200 (application/json)
-
 ## Studies [/studies]
 
 Studies are organized segments of analyses that guide the measurement
