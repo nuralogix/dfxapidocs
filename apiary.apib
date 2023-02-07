@@ -1473,7 +1473,7 @@ Lists specific profiles managed under a single user account specified by the `ID
             Authorization: Bearer <api token>
 
 + Parameters
-    + ID: Profile ID to perform the listing on
+    + ID (string): Requested User UUID.
     + UserProfileName: john@doe.com (string, optional) - Profile name
     + Status: ACTIVE (string, optional) - Profile status
     + Limit: 25 (number, optional) - limit the number of results
@@ -1483,15 +1483,30 @@ Lists specific profiles managed under a single user account specified by the `ID
 
 + Response 200 (application/json)
 
+        [   
             {
-                "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
-                "Name": "John",
+                "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d",
+                "OwnerUserEmail": "doe@gmail.com",
+                "Name": "user",
                 "Email": "doe@gmail.com",
-                "Status": "INACTIVE",
-                "MeasurementCount": 13,
+                "Status": "ACTIVE",
+                "MeasurementCount": 10,
                 "Created": 1490130485,
-                "Updated": 1490130485
+                "Updated": 1490130485,
+                "TotalCount": "2"
+            },
+            {
+                "ID": "3f6ff56d-3e37-4427-b09e-dcf20377fb1a",
+                "OwnerUserEmail": "doe@gmail.com",
+                "Name": "guest",
+                "Email": "doe@gmail.com",
+                "Status": "ACTIVE",
+                "MeasurementCount": 10,
+                "Created": 1490130485,
+                "Updated": 1490130485,
+                "TotalCount": "2"
             }
+        ]
 
 + Response 403 (application/json)
 
@@ -2233,7 +2248,7 @@ Accessible by users with Admin, Lead or Researcher role.
     + UserProfileName (string, optional) - filter by a Profile Name.
     + PartnerID (string, optional) - filter by Partner ID.
     + StudyID (string, optional) - filter by Study ID.
-    + StatusID (string, optional) - filter by measurement Status ID.
+    + StatusID (string, optional) - filter by measurement Status ID (e.g. COMPLETE) or multiple measurement Status IDs (e.g. COMPLETE,PARTIAL).
     + Mode (string, optional) - filter by Mode (e.g. DISCRETE).
     + Region (string, optional) - filter by Region (e.g. na-east, eu-central, sa-east, as-east, as-hk. For details, please refer to https://docs.deepaffex.ai/guide/cloud/2-1_regions.html#geographic-location-and-associated-routing-rules).
 
@@ -2339,7 +2354,7 @@ Accessible by users with Admin, Lead or Researcher role.
             "Message": ""
         }
 
-### List Profiles [GET /organizations/profiles{?UserProfileName,OwnerUser,Limit,Offset,StatusID,Created}]
+### List Profiles [GET /organizations/profiles{?Limit,Offset,Date,EndDate,OwnerUser,UserProfileName,StatusID}]
 
 Similar to <a href="/#reference/0/profiles/list">Profiles --> List</a> but
 retrieves Profiles across the Organization.
@@ -2347,14 +2362,15 @@ retrieves Profiles across the Organization.
 Accessible by users with Researcher or Admin role.
 
 + Parameters
-    + OwnerUser: john@doe.com (string, optional) - Profile owner's email to filter by.
-    + UserProfileName: john@doe.com (string, optional) - Profile's name to filter by.
-    + StatusID (string, optional) - filter by profile StatusID.
-    + Created (date, optional) - filter by creation date.
-    + Limit: 10 (number, optional) - limit the number of results.
+    + Limit: (integer, optional) - The number of profiles to pull from the list.
         + default 25
-    + Offset: 0 (number, optional) - offset the number of results.
+    + Offset: (integer, optional) - Offest to specify the start of the count.
         + default 0
+    + Date (date, optional) - Profile creation start date in the format of YYYY-MM-DD.
+    + EndDate (date, optional) -  Profile creation end date in the format of YYYY-MM-DD.
+    + OwnerUser (string, optional) - filter by User's email address or phone number.
+    + UserProfileName (string, optional) - filter by Profile Name.
+    + StatusID (string, optional) - filter by Profile Status ID (e.g. ACTIVE).   
 
 + Request (application/json)
 
@@ -2898,12 +2914,19 @@ already, it cannot be deleted.
             "success": true
           }
 
-### List [GET /studies{?StatusID}]
+### List [GET /studies{?Limit,Offset,Date,EndDate,Name,StatusID}]
 
 Lists all the studies created in an organization.
 
 + Parameters
-    + StatusID: Active (string, optional) - Status of studies to lookup.
+    + Limit (integer, optional) - The number of studies to pull from the list. 
+        + default 25
+    + Offset (integer, optional) - Offest to specify the start of the count.
+        + default 0
+    + Date (date, optional) - Study creation start date in the format of YYYY-MM-DD.
+    + EndDate (date, optional) - Study creation end date in the format of YYYY-MM-DD.
+    + Name (string, optional) - filter by Study Name.
+    + StatusID: (string, optional) - filter by Study Status ID (e.g. ACTIVE/DELETED).
 
 + Request (application/json)
 
@@ -2916,28 +2939,27 @@ Lists all the studies created in an organization.
         [
             {
                 "ID": "e2e3c2aa-e428-45a3-b28b-27f053a56767",
-                "Name": "DStudy",
-                "Description": "study",
+                "Name": "Test Study",
+                "Description": "Test study",
                 "StudyTemplateID": "b53bbda9-7698-422a-a400-aea7c7e09898",
                 "Measurements": 2,
                 "Participants": 1,
                 "StatusID": "ACTIVE",
                 "Created": 1553012685,
                 "Updated": 1553012685,
-                "TotalCount": 5
+                "TotalCount": 2
             },
             {
                 "ID": "e2e3c2aa-e428-45a3-b28b-27f053a56767",
-                "Name": "DStudy",
-                "Description": "study",
+                "Name": "Test Study",
+                "Description": "Test study",
                 "StudyTemplateID": "b53bbda9-7698-422a-a400-aea7c7e09898",
                 "Measurements": 2,
                 "Participants": 1,
-                "StatusID": "ACTIVE",
+                "StatusID": "DELETED",
                 "Created": 1553012685,
-                "Updated": 1553012685,
-                "TotalCount": 5
-            },
+                "Updated": 1553012685
+            }
         ]
 
 ## Devices [/devices]
@@ -3074,24 +3096,23 @@ that have been associated with it.
             "Message": ""
         }
 
-### List [GET /devices{?StatusID,Unique,DeviceTypeID,Name,Version,Date,EndDate,Limit,Offset}]
+### List [GET /devices{?Limit,Offest,Date,EndDate,Name,Version,StatusID,DeviceTypeID,LicenseID,SortOrder}]
 
 Retrieves a list of existing devices in an organization.
 
 + Parameters
-    + StatusID (string, optional) - Defines the particular status to look up.
-    + Unique (string, optional) - If set to "true", the returned list would
-    contain Devices grouped by 'Name' and 'Platform' along with the count of
-    unique registrations for each combination.
-    + DeviceTypeID (string, optional) - filter the list by DeviceTypeID.
-    + Name (string, optional) - filter the list by Device name.
-    + Version (string, optional) - filter the list by Device version.
-    + Date (date, optional) - filter the list by created date, beginning of window.
-    + EndDate (date, optional) - filter the list by created date, end of window.
-    + Limit (number, optional) - limit the number of results.
+    + Limit (integer, optional) - The number of devices to pull from the list.
         + default 25
-    + Offset (number, optional) - offset the number of results.
+    + Offset (integer, optional) - Offest to specify the start of the count.
         + default 0
+    + Date (date, optional) - Device creation start date in the format of YYYY-MM-DD.
+    + EndDate (date, optional) - Device creation end date in the format of YYYY-MM-DD.
+    + Name (string, optional) - filter by Device Name.
+    + Version (string, optional) - filter by Device Version.
+    + StatusID (string, optional) - filter by Device Status ID (e.g. ACTIVE/DECOMMISSIONED).
+    + DeviceTypeID (string, optional) - filter by Device Type ID.
+    + LicenseID (string, optional) - filter by License ID.
+    + SortOrder (string, optional) - filter by sorting order (e.g. ASC/DESC).
 
 + Request (application/json)
 
@@ -3164,9 +3185,20 @@ extract license information and return to client.
 These endpoints allow to list Licenses available to your User / Organization.
 
 
-### Get Organization Licenses [GET /licenses/organization]
+### Get Organization Licenses [GET /licenses/organization{?Limit,Offset,Date,EndDate,StatusID,LicenseTypeID,LicenseType}]
 
-List licenses available to your User / Organization.
+List licenses available to your Organization.
+
++ Parameters
+    + Limit (integer, optional) - The number of licenses to pull from the list.
+        + default 25
+    + Offset (integer, optional) - Offest to specify the start of the count.
+        + default 0
+    + Date (date, optional) - License creation start date in the format of YYYY-MM-DD.
+    + EndDate (date, optional) - License creation end date in the format of YYYY-MM-DD.
+    + StatusID (string, optional) - filter by License Status ID (e.g. ACTIVE/EXPIRED).
+    + LicenseTypeID (string, optional) - filter by License Type ID.
+    + LicenseType (string, optional) - filter by License Type.
 
 + Request (application/json)
 
