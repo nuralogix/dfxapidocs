@@ -3016,6 +3016,9 @@ device is mapped to a device type ID.
 
 Updates a device reference via the UUID supplied.
 
++ Parameters
+    + ID (string, optional) - Requested device UUID.
+
 + Request (application/json)
 
     + Headers
@@ -3045,6 +3048,9 @@ Updates a device reference via the UUID supplied.
 Retrieves a single reference to a device. The body response
 includes details about the device and the number of measurements
 that have been associated with it.
+
++ Parameters
+    + ID (string, optional) - Requested device UUID.
 
 + Request (application/json)
 
@@ -3140,8 +3146,7 @@ Retrieves a list of existing devices in an organization.
 
 ### Retrieve license ID [GET /devices/license]
 
-We want to extend the EP to use deviceID (instead of {ID}) in the device token to
-extract license information and return to client.
+Retrieves the license information associated with the device token.
 
 + Request (application/json)
 
@@ -3151,13 +3156,14 @@ extract license information and return to client.
 
 + Response 200 (application/json)
 
-            {
-                "ID": "abca6114-b62f-e74c6df2213d",
-                "LicenseType": "MOBILE",
-                "StatusID": "ACTIVE",
-                "Expiration": null,
-                "MaxDevices": null
-            }
+        {
+            "ID": "abca6114-b62f-e74c6df2213d",
+            "LicenseType": "MOBILE",
+            "LicenseTypeID": "MOBILE",
+            "StatusID": "ACTIVE",
+            "Expiration": null,
+            "MaxDevices": null
+        }
 
 ## Licenses [/licenses]
 
