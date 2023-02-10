@@ -2950,7 +2950,7 @@ endpoint returning all their values and meanings.
 
 ### Types [GET /devices/types]
 
-Retrieve a list of allowed device types.
+Retrieves a list of allowed device types.
 
 + Request (application/json)
 
@@ -2987,7 +2987,7 @@ Retrieve a list of allowed device types.
 
 ### Create [POST]
 
-Create a new device reference to associate with measurements. Each
+Creates a new device reference to associate with measurements. Each
 device is mapped to a device type ID.
 
 + Request (application/json)
@@ -3014,7 +3014,7 @@ device is mapped to a device type ID.
 
 ### Update [PATCH /devices/{ID}]
 
-Update a device reference via the UUID supplied.
+Updates a device reference via the UUID supplied.
 
 + Parameters
     + ID (string, optional) - Requested device UUID.
@@ -3045,7 +3045,7 @@ Update a device reference via the UUID supplied.
 
 ### Retrieve [GET /devices/{ID}]
 
-Retrieve a single reference to a device. The body response
+Retrieves a single reference to a device. The body response
 includes details about the device and the number of measurements
 that have been associated with it.
 
@@ -3082,7 +3082,7 @@ that have been associated with it.
 
 ### List [GET /devices{?StatusID,Unique,DeviceTypeID,Name,Version,Date,EndDate,Limit,Offset}]
 
-Retrieve a list of existing devices in an organization.
+Retrieves a list of existing devices in an organization.
 
 + Parameters
     + StatusID (string, optional) - Defines the particular status to look up.
@@ -3146,7 +3146,7 @@ Retrieve a list of existing devices in an organization.
 
 ### Retrieve license ID [GET /devices/license]
 
-Retrieve the license information associated with the device token.
+Retrieves the license information associated with the device token.
 
 + Request (application/json)
 
