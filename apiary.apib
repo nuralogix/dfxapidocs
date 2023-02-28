@@ -337,9 +337,10 @@ license - if it is SDK_DEVICE, then obtaining a user token is mandatory.
 
 * Tokens may expire. To ensure that a token is valid, you can call the
 <a href="/#reference/0/general/verify-token">General VerifyToken</a> endpoint.
-If the ActiveLicense field in the response is false or if the API returns one of
-the following errors: `INVALID_TOKEN`, `LICENSE_EXPIRED`, `INACTIVE_LICENSE` or
-`INACTIVE_DEVICE`, then the client must re-register the license.
+  * If the `ActiveLicense` field in the response is false, then your license
+    is expired/decommissioned. Please use a different license or contact Nuralogix™.
+  * If the API returns an HTTP error 401 or 403, then the token is expired/invalid
+    and the client must re-register the license.
 
 * Please use the <a href="/#reference/0/auths/renew">Auths.Renew</a> endpoint to
 refresh your tokens.
