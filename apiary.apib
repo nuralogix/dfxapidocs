@@ -44,11 +44,11 @@ License, if it's an `SDK_DEVICE`, then Step 3 is mandatory.
 
 3. (Optional) Authenticate as a User by obtaining a user token. A *user token* has
 the following two variations:
-    * *Non-measurement related user token* - This is obtained using the
+    <br><br>* *Non-measurement related user token* - This is obtained using the
     <a href="/#reference/0/organizations/login">Organizations Login</a>
     endpoint. This token doesn't contain a device ID and provides access
     to most non-measurement related endpoints, for example, study management.
-    * *Measurement related user token* - This is obtained using the
+    <br><br>* *Measurement related user token* - This is obtained using the
     <a href="/#reference/0/users/login">Users Login</a> endpoint. Before obtaining
     this token, it's necessary to obtain a device token first.
     This token also contains a device ID and can be used to carry out
@@ -337,9 +337,9 @@ license - if it is SDK_DEVICE, then obtaining a user token is mandatory.
 
 * Tokens may expire. To ensure that a token is valid, you can call the
 <a href="/#reference/0/general/verify-token">General VerifyToken</a> endpoint.
-  * If the `ActiveLicense` field in the response is false, then your license
+  <br><br>* If the `ActiveLicense` field in the response is false, then your license
     is expired/decommissioned. Please use a different license or contact Nuralogix™.
-  * If the API returns an HTTP error 401 or 403, then the token is expired/invalid
+  <br><br>* If the API returns an HTTP error 401 or 403, then the token is expired/invalid
     and the client must re-register the license.
 
 * Please use the <a href="/#reference/0/auths/renew">Auths.Renew</a> endpoint to
