@@ -1842,6 +1842,29 @@ are described in the table below:
 | NOTE_MISSING_MEDICAL_INFO  | Medical history questionnaire information was not sent                               |
 | NOTE_DEGRADED_ACCURACY     | Signal computation suffered from degraded accuracy                                   |
 
+### Errors
+
+A measurement may have one of the following errors received from the DeepAffex™ backend:
+
+| Error code     | Description                                                                                                                                                                                                              | Measurement status |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| WORKER_ERROR   | It is an unrecoverable internal error at the DeepAffex™  backend.                                                                                                                                                        | `ERROR`            |
+| LIVENESS_ERROR | The SNR (Signal to Noise Ratio) of the entire measurement was too low to meet our minimum threshold (0.5 dB). If this error is received then the measurement will only return one point i.e. SNR with -100 as the value. | `PARTIAL`          |
+| ANALYSIS_ERROR | There was a failure while computing a signal. The returned JSON will have a `signal_id` key and a value string indicating the reason behind failure.                                                                     | `PARTIAL`          |
+
+The `Errors` field in the JSON will have the following format:
+```json
+"Errors": {
+  "Code": "<Error code>",
+  "Errors": {
+    "<signal_id>": {
+      "msgs": [
+        "<Error description>"
+      ]
+    }
+  }
+}
+```
 
 + Parameters
     + ID (string) - Requested measurement UUID.
