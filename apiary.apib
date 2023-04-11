@@ -2726,15 +2726,21 @@ looking up all studies and current.
             }
         ]
 
-### List Templates [GET /studies/templates/{?Status,Type}]
+### List Templates [GET /studies/templates/{?Status,Type,Limit,Offest,SortOrder,SortBy}]
 
 Retrieves a list of study templates that exist in a particular organization.
 
 + Parameters
+    + Limit (integer, optional) - The number of studies to pull from the list. 
+        + default 25
+    + Offset (integer, optional) - Offest to specify the start of the count.
+        + default 0
     + Status: ACTIVE (string, optional) - If provided, narrows down results to
     templates of a specific StatusID.
     + Type: HEALTH (string, optional) - If provided, narrows down results to
     templates of a specific StudyTypeID.
+    + SortOrder (string, optional) - filter by sorting order (e.g. ASC/DESC).
+    + SortBy (string, optional) - filter by sorting by (e.g. "Name")
 
 + Request (application/json)
 
