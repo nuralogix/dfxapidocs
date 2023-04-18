@@ -2641,7 +2641,7 @@ enabled. See <a href="/#reference/0/users/create-two-factor-authentication-secre
 
 ### Login with token [POST /organizations/auth/token]
 
-Login with a user token obtained from `/organizations/auth` endpoint.
+Login with a Token obtained from another endpoint such as <a href="/#reference/0/organizations/register-license">Register License</a>.
 
 **NOTE:** In certain situations, it's not possible to manipulate the header of the Websocket request which is needed to authenticate against the DeepAffex Cloud. (e.g. when using Websockets in browsers.) This endpoint allows the DeepAffex Cloud to accept a token via the body of the request and not as part of the header. After the token is validated by the DeepAffex Cloud, the Websocket connection is considered to be authenticated and other Websocket requests (e.g. Measurement.AddData, Measurement.SubscribeToResults etc., may be made.)
 
