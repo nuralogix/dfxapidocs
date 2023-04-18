@@ -401,6 +401,7 @@ mapping as they may be outlined only for internal use.
 | Organizations | 715      | DELETE  | <a href="/#reference/0/organizations/delete-user">`removeUser`</a>                                                    | /organizations/users/{ID}                             |
 | Organizations | 716      | PATCH   | <a href="/#reference/0/organizations/update-profile">`updateProfile`</a>                                              | /organizations/profiles/{ID}                          |
 | Organizations | 717      | POST    | <a href="/#reference/0/organizations/login">`login`</a>                                                               | /organizations/auth                                   |
+| Organizations | 718      | POST    | <a href="/#reference/0/organizations/loginWithToken">`login`</a>                                                      | /organizations/auth/token                             |
 | Studies       | 800      | GET     | <a href="/#reference/0/studies/types">`types`</a>                                                                     | /studies/types                                        |
 | Studies       | 801      | GET     | <a href="/#reference/0/studies/list-templates">`templates`</a>                                                        | /studies/templates                                    |
 | Studies       | 804      | GET     | <a href="/#reference/0/studies/retrieve">`retrieve`</a>                                                               | /studies/{ID}                                         |
@@ -1155,13 +1156,14 @@ token is used against the Reset Password endpoint.
             "Error": "USER_NOT_FOUND"
         }
 
-### Send Account Verification Code [GET /users/verificationCode/{ID}/OrgKey]
+### Send Account Verification Code [GET /users/verificationCode/{ID}/{OrgKey}]
 
 Sends an account verification code to the user's email address.
 The code is used to verify the account through the account verification endpoint.
 
 + Parameters
-    + ID: User's ID
+    + ID: User's ID.
+    + OrgKey: Organization key.
 
 + Response 200 (application/json)
 
@@ -2634,6 +2636,80 @@ enabled. See <a href="/#reference/0/users/create-two-factor-authentication-secre
 
         {
             "Code": "TOO_MANY_LOGIN_ATTEMPTS",
+            "Message": ""
+        }
+
+### Login with token [POST /organizations/auth/token]
+
+Login with a Token obtained from another endpoint such as <a href="/#reference/0/organizations/register-license">Register License</a>.
+
+**NOTE:** In certain situations, it's not possible to manipulate the header of the Websocket request which is needed to authenticate against the DeepAffex Cloud. (e.g. when using Websockets in browsers.) This endpoint allows the DeepAffex Cloud to accept a token via the body of the request and not as part of the header. After the token is validated by the DeepAffex Cloud, the Websocket connection is considered to be authenticated and other Websocket requests (e.g. Measurement.AddData, Measurement.SubscribeToResults etc., may be made.)
+
++ Request (application/json)
+
+            {
+               "Token": "USER_TOKEN"
+            }
+
++ Response 200 (application/json)
+
+        {
+            "Token": "USER_TOKEN",
+        }
+
++ Response 400 (application/json)
+
+        {
+            "Code": "VALIDATION_ERROR",
+            "Message": ""
+        }
+        
++ Response 400 (application/json)
+
+        {
+            "Code": "NO_TOKEN",
+            "Message": ""
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNRECOGNIZED_TOKEN",
+            "Message": ""
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired due to inactivity"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "AUTHENTICATION_ERROR",
+            "Message": "Invalid token"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "INCORRECT_TOKEN_SUBJECT",
+            "Message": ""
+        }
+
++ Response 403 (application/json)
+
+        {
+            "Code": "RESTRICTED_ACCESS",
             "Message": ""
         }
 
