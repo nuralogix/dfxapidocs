@@ -2390,7 +2390,7 @@ Accessible by users with Researcher or Admin role.
 + Parameters
     + Limit: (integer, optional) - The number of profiles to pull from the list.
         + default 25
-    + Offset: (integer, optional) - Offest to specify the start of the count.
+    + Offset: (integer, optional) - Offset to specify the start of the count.
         + default 0
     + Date (date, optional) - Profile creation start date in the format of YYYY-MM-DD.
     + EndDate (date, optional) -  Profile creation end date in the format of YYYY-MM-DD.
@@ -2825,15 +2825,21 @@ looking up all studies and current.
             }
         ]
 
-### List Templates [GET /studies/templates/{?Status,Type}]
+### List Templates [GET /studies/templates/{?Status,Type,Limit,Offset,SortOrder,SortBy}]
 
 Retrieves a list of study templates that exist in a particular organization.
 
 + Parameters
+    + Limit (integer, optional) - The number of study templates to pull from the list. 
+        + default returns all the templates
+    + Offset (integer, optional) - offset to specify the start of the count.
+        + default 0
     + Status: ACTIVE (string, optional) - If provided, narrows down results to
     templates of a specific StatusID.
     + Type: HEALTH (string, optional) - If provided, narrows down results to
     templates of a specific StudyTypeID.
+    + SortOrder (string, optional) - sorting order ASC or DESC.
+    + SortBy (string, optional) - key to sort by (e.g. "Name")
 
 + Request (application/json)
 
@@ -3021,7 +3027,7 @@ Lists all the studies created in an organization.
 + Parameters
     + Limit (integer, optional) - The number of studies to pull from the list. 
         + default 25
-    + Offset (integer, optional) - Offest to specify the start of the count.
+    + Offset (integer, optional) - Offset to specify the start of the count.
         + default 0
     + Date (date, optional) - Study creation start date in the format of YYYY-MM-DD.
     + EndDate (date, optional) - Study creation end date in the format of YYYY-MM-DD.
@@ -3202,14 +3208,14 @@ that have been associated with it.
             "Message": ""
         }
 
-### List [GET /devices{?Limit,Offest,Date,EndDate,Name,Version,StatusID,DeviceTypeID,LicenseID,SortOrder}]
+### List [GET /devices{?Limit,Offset,Date,EndDate,Name,Version,StatusID,DeviceTypeID,LicenseID,SortOrder}]
 
 Retrieves a list of existing devices in an organization.
 
 + Parameters
     + Limit (integer, optional) - The number of devices to pull from the list.
         + default 25
-    + Offset (integer, optional) - Offest to specify the start of the count.
+    + Offset (integer, optional) - Offset to specify the start of the count.
         + default 0
     + Date (date, optional) - Device creation start date in the format of YYYY-MM-DD.
     + EndDate (date, optional) - Device creation end date in the format of YYYY-MM-DD.
@@ -3298,7 +3304,7 @@ List licenses available to your Organization.
 + Parameters
     + Limit (integer, optional) - The number of licenses to pull from the list.
         + default 25
-    + Offset (integer, optional) - Offest to specify the start of the count.
+    + Offset (integer, optional) - Offset to specify the start of the count.
         + default 0
     + Date (date, optional) - License creation start date in the format of YYYY-MM-DD.
     + EndDate (date, optional) - License creation end date in the format of YYYY-MM-DD.
