@@ -1912,23 +1912,10 @@ Retrieves information related to the current organization account.
             "StatusID": "ACTIVE",
             "Contact": null,
             "Email": null,
-            "PasswordMinLength": 5,
-            "AdminPasswordMinLength": 5,
-            "PasswordRequireCharacterClasses": 0,
-            "PasswordRequireUppercase": false,
-            "PasswordRequireLowercase": false,
-            "PasswordRequireDigits": false,
-            "PasswordRequireSpecial": false,
-            "PasswordRotateDays": 0,
-            "RequireUniquePasswordsCount": 0,
-            "SessionMaxDurationSeconds": 0,
-            "SessionIdleDurationSeconds": 0,
             "OrgAddresses": [],
-            "LivenessConfig": {
-                "VisageLiveness": false,
-                "FakeDetection": false,
-                "SNRThresholding": true
-            },
+            "Logo": null,
+            "BrandID": "7ab8bee7-808c-4123-9811-e385adb8c77d",
+            "ConsentId": null,
             "Created": 1490130485,
             "Updated": 1490130485
         }
@@ -1942,48 +1929,8 @@ Retrieves information related to the current organization account.
 
 ### Update [PATCH]
 
-Updates current organization account. Apart from general organization
-information (name, logo, contact info), allows setting organization password
-policy:
-
-| Property                                | Description                                                                                                                                                    |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PasswordMinLength                       | Min password length of regular user accounts (all roles except for DFX\_ORG\_ADMIN)                                                                            |
-| AdminPasswordMinLength                  | Min password length for DFX\_ORG\_ADMIN users                                                                                                                  |
-| PasswordRequireCharacterClasses         | Number of unique character types (upper, lower, number, special) that password should be made of                                                               |
-| PasswordRequireUppercase                | Whether or not a password should include upper case characters                                                                                                 |
-| PasswordRequireLowercase                | Whether or not a password should include lower case characters                                                                                                 |
-| PasswordRequireDigits                   | Whether or not a passwrod should include digits                                                                                                                |
-| PasswordRequireSpecial                  | Whether or not a password should include sppecial characters: punctuation, #, %, etc.                                                                          |
-| PasswordRotateDays                      | Number of days after a password was set till user is forced to change the password                                                                             |
-| RequireUniquePasswordsCount             | Number of unique passwords user must set before older passwords can be reused                                                                                  |
-| LimitLoginAttemptsCountPerWindow        | Maximum number of unsuccessful login attempts in a row within time window before user account becomes temporarily locked. Successful login resets the counter. |
-| LimitLoginAttemptsWindowDurationSeconds | Time window for LoginAttemptsCountPerWindow property                                                                                                           |
-| SessionMaxDurationSeconds               | Maximum duration of user session before user gets automatically logged out                                                                                     |
-| SessionIdleDurationSeconds              | Maximum duration of inactivity before user gets automatically logged out                                                                                       |
-
-*Note*
-
-`PasswordRequireCharacterClasses` works independently from
-`PasswordRequireUppercase`, `PasswordRequireLowercase`, `PasswordRequireDigits`
-and `PasswordRequireSpecial`. `PasswordRequireCharacterClasses` requires just
-the number of character types without focusing at the character types
-themselves; e.g. if two character classes are required, passwords made of
-lower and upper case characters (`aaAA`), or digits and special (`00##`) will
-be accepted.
-
-Combining `PasswordRequireCharacterClasses` with `PasswordRequire*` properties
-allows setting more complex rules. e.g., requiring 3 character classes along
-with `PasswordRequireSpecial` forces passwords to include at least three
-character types, one of which must be _special_.
-
-`LimitLoginAttemptsCountPerWindow` and `LimitLoginAttemptsWindowDurationSeconds`
-effectively allows setting login rate limiting. e.g., values 10 and 3600
-respectively would set the limit on number of unsuccessful login attempts to 10
-within one hour. Exceeding this limit would result in a HTTP 429 response.
-
-`SessionMaxDurationSeconds` and `SessionIdleDurationSeconds` control the expiry
-of JWT tokens.
+Updates current organization's account general information (name, logo, contact info). 
+This endpoint would only update fields supplied to it, hence sending only Name or Logo will exclusively update those values. 
 
 This call requires DFX\_ORG\_ADMIN level permissions.
 
@@ -2000,21 +1947,7 @@ This call requires DFX\_ORG\_ADMIN level permissions.
                 "Identifier": "new-identifier",
                 "Contact": "FirstName LastName",
                 "Email": "contact@email.com",
-                "Logo": null,
-                "StatusID"   : "ACTIVE",
-                "PasswordMinLength": 6,
-                "AdminPasswordMinLength": 7,
-                "PasswordRequireCharacterClasses": 3,
-                "PasswordRequireUppercase": false,
-                "PasswordRequireLowercase": false,
-                "PasswordRequireDigits": false,
-                "PasswordRequireSpecial": true,
-                "PLimitLoginAttemptsCountPerWindow": 0,
-                "PLimitLoginAttemptsWindowSeconds": 0,
-                "SessionMaxDurationSeconds": 0,
-                "SessionIdleDurationSeconds": 0,
-                "PasswordRotateDays": 90,
-                "RequireUniquePasswordsCount": 5,
+                "Logo": null
             }
 
 + Response 200 (application/json)
