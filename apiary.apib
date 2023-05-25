@@ -419,9 +419,10 @@ mapping as they may be outlined only for internal use.
 | Devices       | 908      | GET     | <a href="/#reference/0/devices/retrieve-license-id">`Retrieve license ID`</a>                                         | /devices/license                                      |
 | Licenses      | 1406     | GET     | <a href="/#reference/0/licenses/get-organization-licenses">`listOrgLicenses`</a>                                      | /licenses/organization                                |
 | Licenses      | 1411     | GET     | <a href="/#reference/0/licenses/get-organization-license">`retrieveOrgLicense`</a>                                    | /licenses/organization/{ID}                           |
-| Auths         | 2300     | PATCH   | <a href="/#reference/0/auths/users/reset">`Request to send reset password link to user's email`</a>                   | /auths/users/reset                                    |
-| Auths         | 2303     | POST    | <a href="/#reference/0/auths/users/code/">`Request login code`</a>                                                    | /auths/renew                                          |
+| Auths         | 2300     | PATCH   | <a href="/#reference/0/auths/request-reset-password-link-to-users-email">`Request to send reset password link to user's email`</a>                   | /auths/users/reset                                    |
+| Auths         | 2303     | POST    | <a href="/#reference/0/auths/request-login-code">`Request login code`</a>                                                    | /auths/users/code                                     |
 | Auths         | 2304     | POST    | <a href="/#reference/0/auths/renew">`Renew access and refresh token pair`</a>                                         | /auths/renew                                          |
+| Auths         | 2305     | POST    | <a href="/#reference/0/auths/child-token">`Get Child token without expiring input token`</a>                          | /auths/generateToken                                  |
 
 # 4. Tokens
 
@@ -3470,4 +3471,28 @@ endpoint.
         {
             "Token": "NEW_DEVICE_OR_USER_TOKEN",
             "RefreshToken": "NEW_REFRESH_TOKEN"
+        }
+
+
+### Request Child Token [POST /auths/generateToken]
+Request to get a child token. When you register a license or login
+with user's credentials, a pair of tokens (a Device or User Token and a One-Time
+Refresh Token) is sent back. The client needs to send the matching pair to
+get a new access Token. The old pair will be valid after calling this 
+endpoint.
+
+
++ Request (application/json)
+
+    + Body
+
+            {
+                "Token": "DEVICE_OR_USER_TOKEN",
+                "RefreshToken": "REFRESH_TOKEN"
+            }
+
++ Response 200 (application/json)
+
+        {
+            "Token": "NEW_DEVICE_OR_USER_TOKEN"
         }
