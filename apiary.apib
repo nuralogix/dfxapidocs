@@ -37,8 +37,7 @@ Follow these steps to take a test Measurement:
 <a href="/#reference/0/organizations/register-license">Register License</a>
 endpoint. You only need to do this once per active Device. The response will
 contain a Device Token Pair (a device token and a one-time refresh token)- save
-these locally. Check the returned `RoleID` of your
-License, if it's an `SDK_DEVICE`, then Step 3 is mandatory.
+these locally.
 
 2. For all subsequent API requests send the obtained device token with the request headers
 <a href="/#introduction/3.5.-authentication-headers">for authentication.</a>
@@ -333,8 +332,9 @@ device first by calling the
 <a href="/#reference/0/organizations/unregister-license">Organizations UnregisterLicense</a>
 endpoint.
 
-* The response to Organizations RegisterLicense contains a RoleID for the
-license - if it is SDK_DEVICE, then obtaining a user token is mandatory.
+
+* The response to <a href="/#reference/0/organizations/register-license">Organizations RegisterLicense</a> contains a RoleID for the
+license.
 
 * Tokens may expire. To ensure that a token is valid, you can call the
 <a href="/#reference/0/general/verify-token">General VerifyToken</a> endpoint.
@@ -1544,10 +1544,6 @@ functions. Next, in order to have your user information associated with the
 measurements, you can use <a href="/#reference/0/users/login">User Login</a>
 endpoint to obtain a *User Token Pair*, which can be used to take Measurements
 as well.
-
-**Important:**: If your License Type is `SDK-APPLICATION` (meant for desktop 
-applications), you must login and obtain a User Token Pair as this License Type
-only allows to perform a login operation.
 
 ### Create [POST /measurements]
 
