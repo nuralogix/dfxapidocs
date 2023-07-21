@@ -3530,10 +3530,10 @@ Refresh Token) is sent back. The client needs to send the matching pair to
 get a new access Token. The old pair will be valid after calling this 
 endpoint.
 
-This endpoint is primarily for use with the Web Measurement Service(WMS) and DeepAffex Surveys where
-the Device Token is issued on your server and immediately exchange once it reaches WMS. You should call 
-it immediately after calling [`Organizations.RegisterLicense`](https://dfxapiversion10.docs.apiary.io/#reference/0/organizations/register-license) 
-endpoint and use the child token for the Survey portion of your measurement.
+This endpoint is primarily used in the Web Measurement Service(WMS) when implementing DeepAffex Surveys.
+In WMS, the Device Token Pair is obtained by your server and immediately exchanged with a new pair once it reaches the WMS.
+If you are implementing surveys, you must call this endpoint immediately after calling [`Organizations.RegisterLicense`](https://dfxapiversion10.docs.apiary.io/#reference/0/organizations/register-license) 
+endpoint and use the child token pair for the surveys.
 
 
 + Request (application/json)
