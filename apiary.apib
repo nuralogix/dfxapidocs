@@ -2121,8 +2121,7 @@ requests. A _Device Token_ and a _One-Time Refresh Token_ are returned.
 The longevity and allowed origins of the token can be controlled by
 `TokenExpiresIn` and `TokenSubject` optional parameters. `TokenExpiresIn`
 specifies token validity duration in seconds. Effective duration will be
-calculated as a minimum of `TokenExpiresIn`, license `Expiration` date and
-organization's `SessionMaxDurationseconds`; i.e., this parameter can only be
+calculated as a minimum of `TokenExpiresIn` and license `Expiration` date; i.e., this parameter can only be
 used to further reduce token's lifespan.
 
 `TokenSubject` locks the host which is allowed to use the token for its
