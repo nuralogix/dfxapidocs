@@ -2485,6 +2485,9 @@ communication with DeepAffex. When set, the server will compare the token value
 with HTTP request's `Referer` header and reject the request if those don't
 match.
 
+The presence of the optional `x-nura-session` header allows for the activation 
+of a token session idle timeout lasting 30 minutes.
+
 **Note:** Please make sure to store the obtained tokens securely as most
 Licenses (e.g. Trial) allow for a limited number of registered Devices. To
 unregister a Device and get back one license, call the
@@ -2492,6 +2495,11 @@ unregister a Device and get back one license, call the
 endpoint with your `Device Token`.
 
 + Request (application/json)
+    + Headers
+
+            x-nura-session: true
+
+    + Body
 
         {
             "Key": "LICENSE_KEY",
@@ -3092,6 +3100,9 @@ Accessible only by users with Admin role.
 
 Login and obtain a User Token Pair.
 
+The presence of the optional `x-nura-session` header allows for the activation 
+of a token session idle timeout lasting 30 minutes.
+
 **Note:** User Token obtained from this endpoint does not allow you to take
 Measurements and is intended for viewing purposes only.
 
@@ -3099,6 +3110,12 @@ Measurements and is intended for viewing purposes only.
 enabled. See <a href="/#reference/0/users/create-two-factor-authentication-secret">User --> Create secret</a>
 
 + Request (application/json)
+
+    + Headers
+
+            x-nura-session: true
+
+    + Body
 
             {
                 "Email": "joe@example.com",
