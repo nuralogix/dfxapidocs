@@ -2484,14 +2484,13 @@ specifies token validity duration in seconds. Effective duration will be
 calculated as a minimum of `TokenExpiresIn` and license `Expiration` date; i.e., this parameter can only be
 used to further reduce token's lifespan. The default expiration of access token is 24 hours.
 
-
 By default, the refresh token remains valid for 30 days from its issuance.
 The refresh token's duration can be managed by including RefreshTokenExpiresIn as a body parameter in the request.
 This parameter, expressed in seconds, determines the token's validity starting from its issuance.
 
 `TokenSubject` locks the host which is allowed to use the token for its
 communication with DeepAffex. When set, the server will compare the token value
-with HTTP request's `Referer` header and reject the request if those don't
+with HTTP request's `Referer` header and reject the subsequent request if those don't
 match.
 
 The presence of the optional `x-nura-session` header allows for the activation 
@@ -2516,9 +2515,9 @@ endpoint with your `Device Token`.
             "Name": "DFX Desktop",
             "Identifier": "DFXCLIENT",
             "Version": "1.0.0",
-            "TokenExpiresIn": 20,
             "RefreshTokenExpiresIn": 200,
-            "TokenSubject": "https://deepafex.ai"
+            "TokenExpiresIn": 20 //Optional - Read Documentation before using it,
+            "TokenSubject": "https://myorg.ai //Optional - Read Documentation before using it"
         }
 
 + Response 200 (application/json)
