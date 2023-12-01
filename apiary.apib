@@ -715,8 +715,15 @@ An endpoint that checks the validity of your Token and returns its encoded info.
 + Response 401 (application/json)
 
         {
-            "Code": "INVALID_TOKEN",
-            "Message": "Token is not recognized"
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### Regions [GET /regions]
@@ -778,6 +785,20 @@ account. By default, a user will be assigned for DFX_BASIC_USER role. The rest o
           }
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 + Response 403 (application/json)
 
         {
@@ -814,7 +835,9 @@ enabled for this user.
             {
                 "Email": "joe@example.com",
                 "Password": "foobar",
-                "MFAToken": "123456"
+                "MFAToken": "123456",
+                "TokenExpiresIn": 20,
+                "RefreshTokenExpiresIn": 200
             }
 
 + Response 200 (application/json)
@@ -843,6 +866,20 @@ enabled for this user.
         {
             "Code": "MFA_TOKEN_REQUIRED"
             "Message": "User account is configured to use multi-factor authentication."
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 + Response 429 (application/json)
@@ -890,6 +927,8 @@ a `User Token Pair`.
           "LoginCode": "123456",
           "PhoneNumber": "+12345678900",
           "OrgKey": "Organization-Key"
+          "TokenExpiresIn": 20,
+          "RefreshTokenExpiresIn": 200,
         }
 
 + Response 200 (application/json)
@@ -954,6 +993,20 @@ Retrieves User account information based on the provided User Token.
             "Code": "UNAUTHORIZED_ACCESS"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Update [PATCH /users]
 
 Updates a user's account information with new details. This endpoint
@@ -985,6 +1038,20 @@ First Name or Last Name will exclusively update those values.
             "Error": "UNAUTHORIZED_ACCESS"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Create Two-factor authentication secret [POST /users/mfa/secret]
 
 Creates a base32 secret, url and a QR code (both derived from the secret) that are compatible
@@ -1012,6 +1079,20 @@ This is the first of two API calls needed to configure 2FA for a user.
 
         {
             "Code": "UNAUTHORIZED_ACCESS"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### Enable Two-factor authentication for logged in user [POST /users/mfa]
@@ -1063,6 +1144,20 @@ as `MFAToken` to `/users/mfa/enable` endpoint.
             "Code": "INCORRECT_MFATOKEN"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Disable Two-factor authentication for specified user [DELETE /users/{ID}/mfa]
 
 Disables 2FA for user by its ID. This is a privileged operation that requires ORG_ADMIN permissions.
@@ -1088,6 +1183,20 @@ Disables 2FA for user by its ID. This is a privileged operation that requires OR
             "Code": "UNAUTHORIZED_ACCESS"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Disable Two-factor authentication for logged in user [DELETE /users/mfa]
 
 Disables 2FA for logged in user.
@@ -1108,6 +1217,20 @@ Disables 2FA for logged in user.
 
         {
             "Code": "UNAUTHORIZED_ACCESS"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### Retrieve User Role [GET /users/role]
@@ -1135,6 +1258,19 @@ Retrieves User's Role.
             "Code": "UNAUTHORIZED_ACCESS"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ### Send Reset Request [PATCH /users/sendreset]
 
@@ -1161,6 +1297,21 @@ token is used against the Reset Password endpoint.
 
         {
             "Error": "USER_NOT_FOUND"
+        }
+
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### Send Account Verification Code [GET /users/verificationCode/{ID}/{OrgKey}]
@@ -1236,6 +1387,21 @@ with it. The account to be deleted is derived from the User Token.
         {
             "Error": "UNAUTHORIZED_ACCESS"
         }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 + Response 403 (application/json)
 
         {
@@ -1266,6 +1432,20 @@ This End Point allow user to change password for already verified user
 
         {
             "success": true
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 + Response 400 (application/json)
@@ -1335,6 +1515,20 @@ may be used to segment different accounts for measurements.
             "Code": "NAMESPACE_DOESNT_EXIST"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Update Profile [PATCH /users/profiles/{ID}]
 
 Updates a specific user profile. To update status the
@@ -1366,6 +1560,20 @@ valid options are: ACTIVE and INACTIVE.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Remove Profile [DELETE /users/profiles/{ID}]
 
 Removes the user profile entirely. It also deletes any
@@ -1387,6 +1595,20 @@ related meta fields associated with the profile.
         {
             "Code": "RESTRICTED_ACCESS",
             "Message": ""
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+        
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### Retrieve Profile [GET /users/profiles/{ID}]
@@ -1419,6 +1641,20 @@ Retrieves a single user Profile specified by `ID`.
         {
             "Code": "RESTRICTED_ACCESS",
             "Message": ""
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### List Profiles [GET /users/profiles{?UserProfileName,Status,Limit,Offset}]
@@ -1471,6 +1707,20 @@ Lists specific profiles managed under the current user account.
         {
             "Code": "RESTRICTED_ACCESS",
             "Message": ""
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### List Profiles By User [GET /users/{ID}/profiles{?UserProfileName,Status,Limit,Offset}]
@@ -1526,6 +1776,20 @@ Lists specific profiles managed under a single user account specified by the `ID
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ## Measurements [/measurements]
 
 Measurements are individual one-time captures of blood flow data. A single
@@ -1577,6 +1841,20 @@ should be referenced for adding data chunks and retreiving results.
 
         {
             "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### Add Data [POST /measurements/{MeasurementID}/data]
@@ -1750,6 +2028,20 @@ its cycle in the system:
             "Code": "UNAUTHORIZED_ACCESS"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Retrieve [GET /measurements/{ID}]
 
 The behavior of this endpoint depends upon the type of token used in the header.
@@ -1839,6 +2131,19 @@ the different requested signals specified by Study Template.
             "Code": "UNAUTHORIZED_ACCESS"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ### Subscribe to Results [GET /measurements/{ID}/results]
 
@@ -1953,6 +2258,20 @@ Retrieves information related to the current organization account.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Update [PATCH]
 
 Updates current organization's account general information (name, logo, contact info). 
@@ -1989,6 +2308,19 @@ This call requires DFX\_ORG\_ADMIN level permissions.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ### Users [GET /organizations/users{?Limit,Offset,Date,EndDate,UserName,Gender,RoleID,Region}]
 
@@ -2059,6 +2391,20 @@ Accessible by users with Admin, and Lead role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Create User [POST /organizations/users]
 
 Creates a user with role DFX_BASIC_USER under the organization. Available only to an Administrator.
@@ -2107,6 +2453,20 @@ logged in as a DFX_LEAD,  DFX_ORG_ADMIN
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Register License [POST /organizations/licenses]
 
 Allows consumers to exchange a license key for a Device Token Pair (a Device token 
@@ -2122,12 +2482,19 @@ The longevity and allowed origins of the token can be controlled by
 `TokenExpiresIn` and `TokenSubject` optional parameters. `TokenExpiresIn`
 specifies token validity duration in seconds. Effective duration will be
 calculated as a minimum of `TokenExpiresIn` and license `Expiration` date; i.e., this parameter can only be
-used to further reduce token's lifespan.
+used to further reduce token's lifespan. The default expiration of access token is 24 hours.
+
+By default, the refresh token remains valid for 30 days from its issuance.
+The refresh token's duration can be managed by including RefreshTokenExpiresIn as a body parameter in the request.
+This parameter, expressed in seconds, determines the token's validity starting from its issuance.
 
 `TokenSubject` locks the host which is allowed to use the token for its
 communication with DeepAffex. When set, the server will compare the token value
-with HTTP request's `Referer` header and reject the request if those don't
+with HTTP request's `Referer` header and reject the subsequent request if those don't
 match.
+
+The presence of the optional `x-nura-session` header allows for the activation 
+of a token session idle timeout lasting 30 minutes.
 
 **Note:** Please make sure to store the obtained tokens securely as most
 Licenses (e.g. Trial) allow for a limited number of registered Devices. To
@@ -2136,6 +2503,11 @@ unregister a Device and get back one license, call the
 endpoint with your `Device Token`.
 
 + Request (application/json)
+    + Headers
+
+            x-nura-session: true
+
+    + Body
 
         {
             "Key": "LICENSE_KEY",
@@ -2143,8 +2515,9 @@ endpoint with your `Device Token`.
             "Name": "DFX Desktop",
             "Identifier": "DFXCLIENT",
             "Version": "1.0.0",
-            "TokenExpiresIn": 20,
-            "TokenSubject": "https://deepafex.ai"
+            "RefreshTokenExpiresIn": 200,
+            "TokenExpiresIn": 20 //Optional - Read Documentation before using it,
+            "TokenSubject": "https://myorg.ai //Optional - Read Documentation before using it"
         }
 
 + Response 200 (application/json)
@@ -2162,6 +2535,20 @@ endpoint with your `Device Token`.
         {
             "Code": "INVALID_LICENSE_KEY",
             "Message": "License Key LICENSE_KEY not found"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 + Response 401 (application/json)
@@ -2289,6 +2676,20 @@ Accessible by users with Admin, Lead or Researcher role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Retrieve Measurement [GET /organizations/measurements/{ID}]
 
 Similar to <a href="/#reference/0/measurements/retrieve">Measurements --> Retrieve</a>
@@ -2365,6 +2766,20 @@ Accessible by users with Admin, Lead or Researcher role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### List Profiles [GET /organizations/profiles{?Limit,Offset,Date,EndDate,OwnerUser,UserProfileName,StatusID}]
 
 Similar to <a href="/#reference/0/profiles/list">Profiles --> List</a> but
@@ -2422,6 +2837,20 @@ Accessible by users with Researcher or Admin role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Retrieve Profile [GET /organizations/profiles/{ID}]
 
 Similar to <a href="/#reference/0/profiles/retrieve">Profiles --> Retrieve</a>
@@ -2457,6 +2886,20 @@ Accessible by users with Researcher or Admin role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Update Profile [PATCH /organizations/profiles/{ID}]
 
 Similar to <a href="/#reference/0/profiles/update">Profiles --> Update</a> but
@@ -2490,6 +2933,19 @@ Accessible by users with Researcher or Admin role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ### Retrieve User [GET /organizations/users/{ID}]
 
@@ -2541,6 +2997,20 @@ Accessible only by users with Admin role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Update User [PATCH /organizations/users/{ID}]
 
 Similar to <a href="/#reference/0/users/update">Users --> Update</a> but updates
@@ -2578,6 +3048,20 @@ Accessible only by users with Admin role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Delete User [DELETE /organizations/users/{ID}]
 
 Similar to <a href="/#reference/0/users/remove">Users --> Remove</a> but
@@ -2607,9 +3091,26 @@ Accessible only by users with Admin role.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Login [POST /organizations/auth]
 
 Login and obtain a User Token Pair.
+
+The presence of the optional `x-nura-session` header allows for the activation 
+of a token session idle timeout lasting 30 minutes.
 
 **Note:** User Token obtained from this endpoint does not allow you to take
 Measurements and is intended for viewing purposes only.
@@ -2619,11 +3120,19 @@ enabled. See <a href="/#reference/0/users/create-two-factor-authentication-secre
 
 + Request (application/json)
 
+    + Headers
+
+            x-nura-session: true
+
+    + Body
+
             {
                 "Email": "joe@example.com",
                 "Password": "foobar",
                 "Identifier": "org_identifier",
-                "MFAToken": "123456"
+                "MFAToken": "123456",
+                "TokenExpiresIn": 20,
+                "RefreshTokenExpiresIn": 200
             }
 
 + Response 200 (application/json)
@@ -2684,6 +3193,13 @@ Login with a Token obtained from another endpoint such as <a href="/#reference/0
         {
             "Code": "UNRECOGNIZED_TOKEN",
             "Message": ""
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 + Response 401 (application/json)
@@ -2892,6 +3408,20 @@ values available in the StudyType definition template.
             "Code": "TEMPLATE_ACCESS_DENIED"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Update [PATCH /studies/{ID}]
 
 Updates a particular study record with new information. Organizations
@@ -2921,6 +3451,20 @@ after a study is created.
 
         {
             "success": true
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### Retrieve [GET /studies/{ID}]
@@ -2954,6 +3498,20 @@ displays the amount of measurements captured in it to date.
                 "Updated": 1553012685
             }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Retrieve SDK Study Config Data [POST /studies/sdkconfig]
 
 Retrieves a study's binary config data that has to be used to initialize
@@ -2984,6 +3542,19 @@ config data will be returned.
             "MD5Hash":"ca08cb5c01a207b4a43e9ad404adcc9a",
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ### Delete [DELETE /studies/{ID}]
 
@@ -3004,6 +3575,20 @@ already, it cannot be deleted.
           {
             "success": true
           }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ### List [GET /studies{?Limit,Offset,Date,EndDate,Name,StatusID}]
 
@@ -3052,6 +3637,20 @@ Lists all the studies created in an organization.
                 "Updated": 1553012685
             }
         ]
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ## Devices [/devices]
 
@@ -3154,6 +3753,20 @@ Retrieves a list of allowed device types.
             "Error": "UNAUTHORIZED_ACCESS"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Create [POST]
 
 Creates a new device reference to associate with measurements. Each
@@ -3180,6 +3793,19 @@ device is mapped to a device type ID.
             "ID": "7ab8bee7-808c-4123-9811-e385adb8c77d"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ### Update [PATCH /devices/{ID}]
 
@@ -3210,6 +3836,20 @@ Updates a device reference via the UUID supplied.
 
         {
             "Error": "UNAUTHORIZED_ACCESS"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### Retrieve [GET /devices/{ID}]
@@ -3247,6 +3887,20 @@ that have been associated with it.
         {
             "Code": "RESTRICTED_ACCESS",
             "Message": ""
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ### List [GET /devices{?Limit,Offset,Date,EndDate,Name,Version,StatusID,DeviceTypeID,LicenseID,SortOrder}]
@@ -3312,6 +3966,20 @@ Retrieves a list of existing devices in an organization.
             "Message": ""
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
 ### Retrieve license ID [GET /devices/license]
 
 Retrieves the license information associated with the device token.
@@ -3331,6 +3999,20 @@ Retrieves the license information associated with the device token.
             "StatusID": "ACTIVE",
             "Expiration": null,
             "MaxDevices": null
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
 
 ## Licenses [/licenses]
@@ -3393,6 +4075,19 @@ List licenses available to your Organization.
             }
         ]
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ### Get Organization License [GET /licenses/organization/{ID}]
 
@@ -3422,6 +4117,19 @@ Retrieve a single organization license specified by ID.
             "SDKPlatforms": []
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
 
 ## Auths [/auths]
 
@@ -3505,6 +4213,10 @@ endpoint. Refresh Token is only used when calling
 the [`Auths.Renew`](https://dfxapiversion10.docs.apiary.io/#reference/0/auths/renew)
 endpoint.
 
+The newly generated access token will adopt the expiration time of the input access token. The default expiration of access token is 24 hours.
+By default, the newly generated refresh token will have a 30-day expiration period, 
+unless the RefreshTokenExpiresIn parameter is provided in the request.
+
 + Request (application/json)
 
     + Body
@@ -3512,6 +4224,7 @@ endpoint.
             {
                 "Token": "DEVICE_OR_USER_TOKEN",
                 "RefreshToken": "REFRESH_TOKEN"
+                "RefreshTokenExpiresIn": 200,
             }
 
 + Response 200 (application/json)
@@ -3521,6 +4234,19 @@ endpoint.
             "RefreshToken": "NEW_REFRESH_TOKEN"
         }
 
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "A new token pair is already generated"
+        }
 
 ### Request Child Token [POST /auths/generateToken]
 Request to get a child token. When you register a license or login
@@ -3549,4 +4275,18 @@ exchanged with a new pair once it reaches the WMS using this endpoint.
 
         {
             "Token": "NEW_DEVICE_OR_USER_TOKEN"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
         }
