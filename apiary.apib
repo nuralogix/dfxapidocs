@@ -824,6 +824,16 @@ this endpoint.
 **Note:** MFAToken token is mandatory when Multi-factor authentication is
 enabled for this user.
 
++ Parameters
+    + RefreshTokenExpiresIn (integer, optional) - The seconds for which the refresh token will be valid for
+        + Lower Limit 1
+        + Upper Limit 2592000
+        + default 2592000
+    + TokenExpiresIn (integer, optional) - The seconds for which the access token will be valid for
+        + Lower Limit 1
+        + Upper Limit 86400
+        + default 86400
+
 + Request (application/json)
 
     + Headers
@@ -920,6 +930,16 @@ this code in `loginWithCode` endpoint to obtain `UserToken`.
 
 Use previously requested 6-digit code to login into a new session and obtain
 a `User Token Pair`.
+
++ Parameters
+    + RefreshTokenExpiresIn (integer, optional) - The seconds for which the refresh token will be valid for
+        + Lower Limit 1
+        + Upper Limit 2592000
+        + default 2592000
+    + TokenExpiresIn (integer, optional) - The seconds for which the access token will be valid for
+        + Lower Limit 1
+        + Upper Limit 86400
+        + default 86400
 
 + Request (application/json)
 
@@ -2502,6 +2522,19 @@ unregister a Device and get back one license, call the
 <a href="/#reference/0/organizations/unregister-license">Unregister License</a>
 endpoint with your `Device Token`.
 
++ Parameters
+    + RefreshTokenExpiresIn (integer, optional) - The seconds for which the refresh token will be valid for
+        + Lower Limit 1
+        + Upper Limit 2592000
+        + default 2592000
+    + TokenExpiresIn (integer, optional) - The seconds for which the access token will be valid for
+        + Lower Limit 1
+        + Upper Limit 86400
+        + default 86400
+    + Version (string, optional)
+        + MaxLength 20 chars
+
+
 + Request (application/json)
     + Headers
 
@@ -3117,6 +3150,16 @@ Measurements and is intended for viewing purposes only.
 
 **Note:** `MFAToken` parameter is required only when 2FA authentication is
 enabled. See <a href="/#reference/0/users/create-two-factor-authentication-secret">User --> Create secret</a>
+
++ Parameters
+    + RefreshTokenExpiresIn (integer, optional) - The seconds for which the refresh token will be valid for
+        + Lower Limit 1
+        + Upper Limit 2592000
+        + default 2592000
+    + TokenExpiresIn (integer, optional) - The seconds for which the access token will be valid for
+        + Lower Limit 1
+        + Upper Limit 86400
+        + default 86400
 
 + Request (application/json)
 
@@ -4216,6 +4259,12 @@ endpoint.
 The newly generated access token will adopt the expiration time of the input access token. The default expiration of access token is 24 hours.
 By default, the newly generated refresh token will have a 30-day expiration period, 
 unless the RefreshTokenExpiresIn parameter is provided in the request.
+
++ Parameters
+    + RefreshTokenExpiresIn (integer, optional) - The seconds for which the refresh token will be valid for
+        + Lower Limit 1
+        + Upper Limit 2592000
+        + default 2592000
 
 + Request (application/json)
 
