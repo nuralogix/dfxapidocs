@@ -387,6 +387,7 @@ mapping as they may be outlined only for internal use.
 | Measurements  | 510      | CONNECT | <a href="/#reference/0/measurements/subscribe-to-results">`subscribeResults`</a>                                      | /measurements/{ID}/results/                           |
 | Measurements  | 500      | GET     | <a href="/#reference/0/measurements/retrieve">`retrieve`</a>                                                          | /measurements/{ID}                                    |
 | Measurements  | 501      | GET     | <a href="/#reference/0/measurements/list">`list`</a>                                                                  | /measurements                                         |
+| Measurements  | 523      | GET     | <a href="/#reference/0/measurements/intermediate-results">`getIntermediateResults`</a>                                | /measurements/{ID}/results{chunkOrder}                |
 | Organizations | 700      | GET     | <a href="/#reference/0/organizations/retrieve">`retrieve`</a>                                                         | /organizations                                        |
 | Organizations | 702      | GET     | <a href="/#reference/0/organizations/users">`users`</a>                                                               | /organizations/users                                  |
 | Organizations | 703      | GET     | <a href="/#reference/0/organizations/list-measurements">`listMeasurements`</a>                                        | /organizations/measurements                           |
@@ -2238,6 +2239,146 @@ The `Errors` field in the JSON will have the following format:
             }
 
 + Response 200 (application/json)
+
+
+### Intermediate Results [GET /measurements/{ID}/results/{chunkOrder}]
+
+This endpoint is used to get the intermediate results of a measurement done. The intermediate results are valid for 2 minutes after the measurement is done.
+
+
++ Parameters
+    + ID (string) - Requested measurement UUID.
+    + chunkOrder(number) - The intermediate result number.
+
++ Request (application/json)
+
+    + Headers
+
+            Authorization: Bearer <api token>
+
++ Response 200 (application/json)
+
+       {
+    "MeasurementID": "663b8ac1-67b5-4a2a-939b-6bdae2abca32",
+    "MeasurementDataID": "663b8ac1-67b5-4a2a-939b-6bdae2abca32:1",
+    "MeasurementResultID": "9f8ae87c-b899-45ce-8b5f-8e57f753cfa9",
+    "Multiplier": 10000,
+    "Channels": {
+        "SNR": {
+            "Data": [
+                1000000
+            ],
+            "Channel": "slow/toi4"
+        },
+        "HR_BPM": {
+            "Data": [
+                909906
+            ],
+            "Channel": "slow/toi4"
+        },
+    },
+    "Error": {
+        "Code": "OK"
+    },
+    "Signals": {
+        "fields": {
+            "SNR": {
+                "listValue": {
+                    "values": [
+                        {
+                            "structValue": {
+                                "fields": {
+                                    "Channel": {
+                                        "stringValue": "slow/toi4"
+                                    },
+                                    "Multiplier": {
+                                        "numberValue": 10000
+                                    },
+                                    "FPS": {
+                                        "numberValue": 30
+                                    },
+                                    "Notes": {
+                                        "listValue": {}
+                                    },
+                                    "Data": {
+                                        "listValue": {
+                                            "values": [
+                                                {
+                                                    "numberValue": 1000000
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "HR_BPM": {
+                "listValue": {
+                    "values": [
+                        {
+                            "structValue": {
+                                "fields": {
+                                    "Channel": {
+                                        "stringValue": "slow/toi4"
+                                    },
+                                    "Multiplier": {
+                                        "numberValue": 10000
+                                    },
+                                    "FPS": {
+                                        "numberValue": 30
+                                    },
+                                    "Notes": {
+                                        "listValue": {}
+                                    },
+                                    "Data": {
+                                        "listValue": {
+                                            "values": [
+                                                {
+                                                    "numberValue": 909906
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
+
++ Response 404 (application/json)
+
+        {
+            "Code": "INVALID_MEASUREMENT"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "UNAUTHORIZED_ACCESS"
+        }
+
++ Response 401 (application/json)
+
+        {
+            "Code": "TOKEN_EXPIRED",
+            "Message": "Your token has expired"
+        }
+       
++ Response 401 (application/json)
+
+        {
+            "Code": "ERR_SESSION_EXPIRED",
+            "Message": "Session expired"
+        }
+
+
 
 ## Organizations [/organizations]
 
