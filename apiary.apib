@@ -1977,13 +1977,14 @@ results of the measurements are captured and only displayed for the measurements
 made by the token used in the header of this call. Each record has a status representing
 its cycle in the system:
 
-|Status Message |Description                                                                                                                  |
-|---------------|---------------------------------------------------------------------------------------------------------------------------- |
-| IN_PROGRESS   | A new measurement was created and API is waiting for payloads from the client.                                              |
-| COMPLETE      | All signals were computed successfully and are ready for consumption.                                                       |
-| ERROR         | An error occurred that caused a failure in processing the measurement entirely.                                             |
-| INACTIVE      | Measurement was cancelled due to a new measurement being created with the same device ID.                                   |
-| PARTIAL       | One or more signal(s) failed to be computed due to various reasons, but the rest of the signals were computed successfully. |
+|Status Message |Description                                                                                                                             |
+|---------------|--------------------------------------------------------------------------------------------------------------------------------------- |
+| COMPLETE      | This measurement has been successfully processed and all the expected results have been computed.                                      |
+| PARTIAL       | This measurement has been fully processed and one (or possibly more) of the expected results could not be accurately computed.         |
+| IN_PROGRESS   | This measurement has been created and the DeepAffex™ Cloud is waiting for payloads from the client.                                    |
+| PENDING       | The DeepAffex™ Cloud has received all the payloads and the results are being computed.                                                 |
+| INACTIVE      | This measurement has been cancelled because a new measurement has been created with the same DeviceID.                                 |
+| ERROR         | An error occurred in the DeepAffex™ Cloud while processing this measurement and *none* of the expected results could be computed.      |
 
 + Parameters
     + Limit (integer, optional) - The number of measurements to pull from the list.
