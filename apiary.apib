@@ -1892,14 +1892,14 @@ closing a measurement. Each of these phases have the same payload structure
 however a different `Action` flag is to be sent with each request and must
 follow the `CHUNK::ACTION` format.
 
-| Measurement Actions | Description                                                        |
-| ------------------- | ------------------------------------------------------------------ |
-| `FIRST::PROCESS`    | Start the measurement and return results for the payload           |
-| `FIRST::IGNORE`     | Start the measurement and *do not* return results for the payload  |
-| `CHUNK::PROCESS`    | Process a payload and return the payload results                   |
-| `CHUNK::IGNORE`     | Process a payload and *do not* return the payload results          |
-| `LAST::PROCESS`     | Finish the measurement and return the measurement results          |
-| `LAST::IGNORE`      | Finish the measurement and *do not* return the measurement results |
+| Measurement Actions | Description                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `FIRST::PROCESS`    | Start the measurement. Process this chunk and return intermediate results.                                               |
+| `FIRST::IGNORE`     | Start the measurement. Process this chunk but don’t return intermediate results.                                         |
+| `CHUNK::PROCESS`    | Process this chunk and return intermediate results.                                                                      |
+| `CHUNK::IGNORE`     | Process this chunk but don’t return intermediate results.                                                                |
+| `LAST::PROCESS`     | Finish the measurement. Process this chunk and return cumulative final results.                                          |
+| `LAST::IGNORE`      | Finish the measurement. Process this chunk but don’t return cumulative final results. (This would not normally be used.) |
 
 
 `Payload` is binary data that can currently only be obtained by using our SDK.
