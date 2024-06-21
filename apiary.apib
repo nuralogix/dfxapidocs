@@ -1,11 +1,11 @@
 FORMAT: 1A
 HOST: https://api.deepaffex.ai
 
-# DeepAffex™ Cloud API
+# DeepAffex® Cloud API
 
-The NuraLogix DeepAffex™ Cloud API (DFX API) is used to analyze the facial
+The NuraLogix DeepAffex® Cloud API (DFX API) is used to analyze the facial
 blood-flow information extracted from images by the
-[DeepAffex™ Extraction SDK](https://www.deepaffex.ai/developers-sdk/). For an
+[DeepAffex® Extraction SDK](https://www.deepaffex.ai/developers-sdk/). For an
 overview of DeepAffex technologies, please refer to our
 [Developers Guide](https://docs.deepaffex.ai/guide/index.html)
 
@@ -339,7 +339,7 @@ license.
 * Tokens may expire. To ensure that a token is valid, you can call the
 <a href="/#reference/0/general/verify-token">General VerifyToken</a> endpoint.
   <br><br>* If the `ActiveLicense` field in the response is false, then your license
-    is expired/decommissioned. Please use a different license or contact Nuralogix™.
+    is expired/decommissioned. Please use a different license or contact Nuralogix®.
   <br><br>* If the API returns an HTTP error 401 or 403, then the token is expired/invalid
     and the client must re-register the license.
 
@@ -1892,14 +1892,14 @@ closing a measurement. Each of these phases have the same payload structure
 however a different `Action` flag is to be sent with each request and must
 follow the `CHUNK::ACTION` format.
 
-| Measurement Actions | Description                                                  |
-| ------------------- | ------------------------------------------------------------ |
-| `FIRST::PROCESS`    | Start a new measurement (drop any existing), Process results |
-| `FIRST::IGNORE`     | Start a new measurement (drop any existing), Do not process  |
-| `CHUNK::PROCESS`    | Arbitrary block of TOI data and process results              |
-| `CHUNK::IGNORE`     | Arbitrary block of TOI data and do not process results       |
-| `LAST::PROCESS`     | Finish a measurement cycle and process results               |
-| `LAST::IGNORE`      | Finish a measurement cycle and do not process                |
+| Measurement Actions | Description                                                                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `FIRST::PROCESS`    | Start the measurement. Process this chunk and return intermediate results.                                                   |
+| `FIRST::IGNORE`     | Start the measurement. Process this chunk but don’t return intermediate results.                                             |
+| `CHUNK::PROCESS`    | Process this chunk and return intermediate results.                                                                          |
+| `CHUNK::IGNORE`     | Process this chunk but don’t return intermediate results.                                                                    |
+| `LAST::PROCESS`     | Finish the measurement. Process this chunk and return cumulative final results.                                              |
+| `LAST::IGNORE`      | Finish the measurement. Process this chunk but don’t return cumulative final results. (This would **not** normally be used.) |
 
 
 `Payload` is binary data that can currently only be obtained by using our SDK.
@@ -1981,10 +1981,10 @@ its cycle in the system:
 |---------------|--------------------------------------------------------------------------------------------------------------------------------------- |
 | COMPLETE      | This measurement has been successfully processed and all the expected results have been computed.                                      |
 | PARTIAL       | This measurement has been fully processed and one (or possibly more) of the expected results could not be accurately computed.         |
-| IN_PROGRESS   | This measurement has been created and the DeepAffex™ Cloud is waiting for payloads from the client.                                    |
-| PENDING       | The DeepAffex™ Cloud has received all the payloads and the results are being computed.                                                 |
+| IN_PROGRESS   | This measurement has been created and the DeepAffex® Cloud is waiting for payloads from the client.                                    |
+| PENDING       | The DeepAffex® Cloud has received all the payloads and the results are being computed.                                                 |
 | INACTIVE      | This measurement has been cancelled because a new measurement has been created with the same DeviceID.                                 |
-| ERROR         | An error occurred in the DeepAffex™ Cloud while processing this measurement and *none* of the expected results could be computed.      |
+| ERROR         | An error occurred in the DeepAffex® Cloud while processing this measurement and *none* of the expected results could be computed.      |
 
 + Parameters
     + Limit (integer, optional) - The number of measurements to pull from the list.
@@ -2202,11 +2202,11 @@ are described in the table below:
 
 ### Errors
 
-A measurement may have one of the following errors received from the DeepAffex™ backend:
+A measurement may have one of the following errors received from the DeepAffex® backend:
 
 | Error code     | Description                                                                                                                                                                                                              | Measurement status |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
-| WORKER_ERROR   | It is an unrecoverable internal error at the DeepAffex™  backend.                                                                                                                                                        | `ERROR`            |
+| WORKER_ERROR   | It is an unrecoverable internal error at the DeepAffex®  backend.                                                                                                                                                        | `ERROR`            |
 | LIVENESS_ERROR | The SNR (Signal to Noise Ratio) of the entire measurement was too low to meet our minimum threshold (0.5 dB). If this error is received then the measurement will only return one point i.e. SNR with -100 as the value. | `PARTIAL`          |
 | ANALYSIS_ERROR | There was a failure while computing a signal. The returned JSON will have a `signal_id` key and a value string indicating the reason behind failure.                                                                     | `PARTIAL`          |
 
