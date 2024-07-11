@@ -628,12 +628,7 @@ Retrieves a list of available User Roles.
                 "ID": "DFX_OPERATOR",
                 "Name": "DFX Operator",
                 "Description": "DFX Operator"
-            },
-            {
-                "ID": "DFX_BASIC_USER",
-                "Name": "DFX Basic User",
-                "Description": "DFX Basic User"
-            }            
+            }          
         ]
 
 
@@ -744,7 +739,8 @@ An endpoint gives a list of regions available for clusters.
 Creates a new user in the organization, checking for existing user details
 against the user list. `Email + Password` *OR* `PhoneNumber` fields are
 required. If both are provided, `Email + Password` will be used to create User
-account. By default, a user will be assigned for DFX_BASIC_USER role. The rest of the fields are optional.
+account. By default, a user will be assigned NURA_APP_USER role. The rest of the
+fields are optional.
 
 + Request (application/json)
 
@@ -2564,11 +2560,9 @@ Accessible by users with Admin, and Lead role.
 
 ### Create User [POST /organizations/users]
 
-Creates a user with role DFX_BASIC_USER under the organization. Available only to an Administrator.
-
-An email will be sent to submitted Email address with a link to setup password
-for the account. To create a user under your organization. You will need to be
-logged in as a DFX_LEAD,  DFX_ORG_ADMIN
+To create a user within your organization, you will need to be logged in as a
+DFX_LEAD or DFX_ORG_ADMIN. An email will be sent to the submitted email address
+with a link to activate and set up a password for the account.
 
 + Request (application/json)
 
