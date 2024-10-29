@@ -2761,11 +2761,9 @@ logo
 
             Authorization: Bearer <api token>
 
-+ Response 200 (application/json)
++ Response 200 (image/png)
 
-        {
-            "{\"Name\":\"杭州师范大学附属医院 (HZ2Y)\",\"Identifier\":\"zjnu\",\"Created\":1536170947,\"Updated\":1536170947}"
-        }
+        "data:image/png;base64,<imageData>"
 
 ### List Measurements [GET /organizations/measurements{?Limit,Offset,Date,EndDate,UserName,UserProfileID,UserProfileName,PartnerID,StudyID,StatusID,Mode,Region}]
 
@@ -3709,10 +3707,7 @@ config data will be returned.
 + Response 200 (application/json)
 
         {
-            "ConfigFile": {
-                "type": "Buffer",
-                "data": [55,56,44,56,53,44,49,44,...]
-            },
+            "ConfigFile": "<base64encodedStringData>",
             "MD5Hash":"ca08cb5c01a207b4a43e9ad404adcc9a",
         }
 
