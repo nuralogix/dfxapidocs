@@ -4374,17 +4374,16 @@ Request to send login code.
 
 ### Renew [POST /auths/renew]
 
-Renews user/device token and refresh token. When you register a license or login
-with user's credentials, a pair of tokens (a Device or User Token and a One-Time
-Refresh Token) is sent back. The client needs to send the matching pair to
-exchange it with a new pair. The old pair will not be valid after calling this 
-endpoint. Refresh Token is only used when calling
-the [`Auths.Renew`](https://dfxapiversion10.docs.apiary.io/#reference/0/auths/renew)
-endpoint.
+Renews User or Device Token and Refresh Token. When you register a license or log
+in with user credentials, a pair of tokens - a Device or User Token and a One-Time
+Refresh Token - is returned. If the Device or User Token has expired, it can be
+renewed by sending it along with the matching One-Time Refresh token to this endpoint
+to exchange it for a new pair of tokens. The old pair of tokens will not be valid
+after calling this endpoint.
 
-The newly generated access token will adopt the expiration time of the input access token. The default expiration of access token is 24 hours.
-By default, the newly generated refresh token will have a 30-day expiration period, 
-unless the RefreshTokenExpiresIn parameter is provided in the request.
+The new User or Device token will adopt the expiration duration of the old token
+(default 24 hours). By default, the new Refresh Token will have a 30-day expiration
+duration unless the RefreshTokenExpiresIn parameter was provided in the request.
 
 + Parameters
     + RefreshTokenExpiresIn (integer, optional) - The seconds for which the refresh token will be valid for
